@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>P2P Keyboard</title>
+</head>
+<body>
+  <h1>P2P Keyboard</h1>
+  <p>Many browsers require the user to manually enable audio. Click here to do so.</p>
+  <button id="play-button">Enable audio</button>
+  <br>
+  <p>See <a href="https://jminjie.github.io/samples">this page</a> for more custom samples (must be C3/C4/C5 mapped)</p>
+  <button onclick="setMySampler()">Set my sampler</button>
+  <input type="text" id="mysamplerurl" size="50" value="https://jminjie.github.io/samples/piano_electric_reed/">
+  <br>
+  <button onclick="setTheirSampler()">Set their sampler</button>
+  <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/piano/">
+
+  <br>
+  <br>
+  <button id="send">Send test p2p message</button>
+
+  <pre>Round trip time: <span id="ping"></span></pre>
+
+  <script src="https://unpkg.com/tone"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
