@@ -349,6 +349,7 @@ var their_sampler = new Tone.Sampler({
 		A6: "A6.mp3",
 		A7: "A7.mp3",
 	},
+    release: 0.6,
 	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
 }).toDestination();
