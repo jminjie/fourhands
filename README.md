@@ -25,3 +25,7 @@ Deploy with `node index.js`. This will serve the files needed for the page (inde
 If you don't have an SSL cert you can comment out the https server and uncomment the http server in index.js. But note that a secure connection is required for MIDI access (localhost is secure by default).
 
 Client should be available at localhost:30001.
+
+## Demo video
+I'm going to try to record a short demo video some time in the next few days to show how seamless the jamming
+experience is. For now feel free to try it for yourself.
