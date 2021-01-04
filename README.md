@@ -11,7 +11,7 @@ can be acheived on wired connections for fairly nearby players (within 35 miles
 ## Prior art
 Online jamming has been acheived already, but often not in an accessible and unstructured way.
 
-- [Jacktrip](https://news.stanford.edu/2020/09/18/jacktrip-software-allows-musicians-sync-performances-online/) allows fairly nearby players to jam in real time, but requires a local machine with a static IP (an AWS instance will not work, since the microphone must be plugged in to the machine).
+- [Jacktrip](https://news.stanford.edu/2020/09/18/jacktrip-software-allows-musicians-sync-performances-online/) allows fairly nearby players to jam in real time, but requires a local machine with a static IP (an AWS instance will not work, since the audio cable must be plugged in to the machine).
 - A few different apps including [Endless](https://www.theverge.com/2020/3/31/21201913/endlesss-app-music-remotely-jam-out-loops-real-time), [NinJam](https://www.cockos.com/ninjam/), and [Jammr](https://jammr.net/) allow collaborative looping, in which your playing is shared n measures after you play it.
 - [Jamlink](https://musicplayers.com/2011/11/musicianlink-jamlink/) shares audio for remote jamming but requires custom hardware.
 - My own [collaborative piano](https://piano.jminjie.com) allows multiple participants to share a piano (like Google Docs for piano). The latency is too high to jam, but this does work for sharing ideas when songwriting remotely.
