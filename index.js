@@ -13,7 +13,7 @@ var fileServer = new(nodeStatic.Server)();
 var http = require('http');
 var app = http.createServer(function(req, res) {
       fileServer.serve(req, res);
-    }).listen(5009);
+    }).listen(30001);
 */
 
 var secureApp = Https.createServer({
@@ -22,7 +22,7 @@ var secureApp = Https.createServer({
       ca: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/chain.pem')
 }, function(req, res) {
   fileServer.serve(req, res);
-}).listen(5009);
+}).listen(30001);
 
 var io = socketIO.listen(secureApp);
 io.sockets.on('connection', function(socket) {

@@ -67,8 +67,13 @@ socket.emit('create or join', room);
 
 // Leaving rooms and disconnecting from peers.
 socket.on('disconnect', function(reason) {
-  console.log(`Disconnected: ${reason}.`);
-  sendBtn.disabled = true;
+    console.log(`Disconnected: ${reason}.`);
+    sendBtn.disabled = true;
+
+    document.getElementById("peer-status").innerHTML = "Lost peer connection.";
+    document.getElementById("peer-status").style.color = "#000";
+    document.getElementById("ping").innerHTML = "";
+    document.getElementById("ping2").innerHTML = "";
 });
 
 socket.on('bye', function(room) {
@@ -180,14 +185,16 @@ function onLocalSessionCreated(desc) {
     }).catch(logError);
 }
 
+function peerConnected() {
+    return dataChannel && peerConn.connectionState == "connected";
+}
+
 var pingTime = 0;
+
 function sendPing() {
-    if (dataChannel && peerConn.connectionState == "connected") {
+    if (peerConnected()) {
         dataChannel.send('ping');
         pingTime = Date.now();
-    } else {
-        document.getElementById("ping").innerHTML = "";
-        document.getElementById("ping2").innerHTML = "";
     }
 }
 
@@ -196,6 +203,8 @@ function onDataChannelCreated(channel) {
 
     channel.onopen = function() {
         console.log('CHANNEL opened!!!');
+        document.getElementById("peer-status").innerHTML = "Peer connected.";
+        document.getElementById("peer-status").style.color = "green";
         sendPing();
         window.setInterval(sendPing, 1000);
         sendBtn.disabled = false;
@@ -369,7 +378,7 @@ function onSetMySamplerButtonPress() {
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
     changeMySampler(url, ext, rel, gain);
-    if (dataChannel && peerConn.connectionState == "connected") {
+    if (peerConnected()) {
         dataChannel.send("mySampler " + url + " " + ext + " " + rel + " " + gain);
     }
 }
@@ -398,7 +407,7 @@ function onSetTheirSamplerButtonPress() {
     let rel = document.getElementById("theirsamplerrelease").value;
     let gain = document.getElementById("theirgain").value;
     changeTheirSampler(url, ext, rel, gain);
-    if (dataChannel && peerConn.connectionState == "connected") {
+    if (peerConnected()) {
         dataChannel.send("theirSampler " + url + " " + ext + " " + rel + " " + gain);
     }
 }
@@ -471,6 +480,7 @@ function onMIDISuccess(midiAccess) {
     deviceInfoMessage += "]";
     if (inputs.size > 0) {
         document.getElementById("midi-status").innerHTML = deviceInfoMessage;
+        document.getElementById("midi-status").style.color = "green";
     }
 }
 
@@ -525,7 +535,7 @@ document.addEventListener('keydown', function(event) {
     }
     if (midiKeyCode != -1) {
         keyDown(ME, midiKeyCode, 80);
-        if (dataChannel && peerConn.connectionState == "connected") {
+        if (peerConnected()) {
             let midiInfo = '144-' + midiKeyCode + '-80';
             dataChannel.send(midiInfo);
         }
@@ -583,7 +593,7 @@ document.addEventListener('keyup', function(event) {
     }
     if (midiKeyCode != -1) {
         keyUp(ME, midiKeyCode, 80);
-        if (dataChannel && peerConn.connectionState == "connected") {
+        if (peerConnected()) {
             let midiInfo = '128-' + midiKeyCode + '-80';
             dataChannel.send(midiInfo);
         }
@@ -597,7 +607,7 @@ function onMidiMessage(message) {
     // a velocity value might not be included with a noteOff command
     var byte2 = (message.data.length > 2) ? message.data[2] : 0;
 
-    if (dataChannel && peerConn.connectionState == "connected") {
+    if (peerConnected()) {
         let midiInfo = command + '-' + byte1 + '-' + byte2;
         dataChannel.send(midiInfo);
     }
