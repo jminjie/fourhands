@@ -2,19 +2,19 @@
 
 var os = require('os');
 var nodeStatic = require('node-static');
-var http = require('http');
 var socketIO = require('socket.io');
 
 const Https = require('https');
 const Fs = require('fs');
 
 var fileServer = new(nodeStatic.Server)();
-/*
-    var app = http.createServer(function(req, res) {
-          fileServer.serve(req, res);
-        }).listen(30001);
-        */
 
+/*
+var http = require('http');
+var app = http.createServer(function(req, res) {
+      fileServer.serve(req, res);
+    }).listen(5009);
+*/
 
 var secureApp = Https.createServer({
       key: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/privkey.pem'),
@@ -29,15 +29,14 @@ io.sockets.on('connection', function(socket) {
 
   // convenience function to log server messages on the client
   function log() {
-    var array = ['Message from server:'];
-    array.push.apply(array, arguments);
-    socket.emit('log', array);
+    //var array = ['Message from server:'];
+    //array.push.apply(array, arguments);
+    //socket.emit('log', array);
   }
 
-  socket.on('message', function(message) {
-    log('Client said: ', message);
-    // for a real app, would be room-only (not broadcast)
-    socket.broadcast.emit('message', message);
+  socket.on('message', function({ m, r }) {
+    log('Client said: ', m);
+    socket.broadcast.to(r).emit('message', m);
   });
 
   socket.on('create or join', function(room) {
@@ -53,11 +52,11 @@ io.sockets.on('connection', function(socket) {
       socket.emit('created', room, socket.id);
     } else if (numClients === 1) {
       log('Client ID ' + socket.id + ' joined room ' + room);
-      // io.sockets.in(room).emit('join', room);
+      io.sockets.in(room).emit('join', room);
       socket.join(room);
       socket.emit('joined', room, socket.id);
       io.sockets.in(room).emit('ready', room);
-      socket.broadcast.emit('ready', room);
+      //socket.broadcast.emit('ready', room);
     } else { // max two clients
       socket.emit('full', room);
     }

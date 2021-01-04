@@ -21,13 +21,10 @@ sendBtn.disabled = true;
 // Create a random room if not already present in the URL.
 var isInitiator;
 
-/**
 var room = window.location.hash.substring(1);
 if (!room) {
   room = window.location.hash = randomToken();
 }
-*/
-var room = "theonlyroom";
 
 /****************************************************************************
 * Signaling server
@@ -35,11 +32,6 @@ var room = "theonlyroom";
 
 // Connect to the signaling server
 var socket = io.connect();
-
-socket.on('ipaddr', function(ipaddr) {
-  console.log('Server IP address is: ' + ipaddr);
-  // updateRoomURL(ipaddr);
-});
 
 socket.on('created', function(room, clientId) {
   console.log('Created room', room, '- my client ID is', clientId);
@@ -66,16 +58,12 @@ socket.on('log', function(array) {
 });
 
 socket.on('message', function(message) {
-  console.log('Client received message:', message);
+  //console.log('Client received message:', message);
   signalingMessageCallback(message);
 });
 
 // Joining a room.
 socket.emit('create or join', room);
-
-if (location.hostname.match(/localhost|127\.0\.0/)) {
-  socket.emit('ipaddr');
-}
 
 // Leaving rooms and disconnecting from peers.
 socket.on('disconnect', function(reason) {
@@ -102,8 +90,8 @@ window.addEventListener('unload', function() {
 * Send message to signaling server
 */
 function sendMessageToServer(message) {
-  console.log('Client sending message to server: ', message);
-  socket.emit('message', message);
+  //console.log('Client sending message to server:', message, ' room:', room);
+  socket.emit('message', { m: message, r: room })
 }
 
 /****************************************************************************
@@ -194,8 +182,13 @@ function onLocalSessionCreated(desc) {
 
 var pingTime = 0;
 function sendPing() {
-    dataChannel.send('ping');
-    pingTime = Date.now();
+    if (dataChannel && peerConn.connectionState == "connected") {
+        dataChannel.send('ping');
+        pingTime = Date.now();
+    } else {
+        document.getElementById("ping").innerHTML = "";
+        document.getElementById("ping2").innerHTML = "";
+    }
 }
 
 function onDataChannelCreated(channel) {
@@ -220,7 +213,9 @@ function onDataChannelCreated(channel) {
                 return;
             }
             if (event.data == "pong") {
-                document.getElementById("ping").innerHTML = Date.now() - pingTime;
+                let ping = Date.now() - pingTime;
+                document.getElementById("ping").innerHTML = ping;
+                document.getElementById("ping2").innerHTML = Math.floor(ping/2);
                 return;
             }
             if (event.data.substring(0, 9) == "mySampler") {
@@ -331,11 +326,9 @@ function sendTestMessage() {
     sendPing();
 }
 
-/*
 function randomToken() {
   return Math.floor((1 + Math.random()) * 1e16).toString(16).substring(8);
 }
-*/
 
 function logError(err) {
   if (!err) return;
@@ -376,7 +369,9 @@ function onSetMySamplerButtonPress() {
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
     changeMySampler(url, ext, rel, gain);
-    dataChannel.send("mySampler " + url + " " + ext + " " + rel + " " + gain);
+    if (dataChannel && peerConn.connectionState == "connected") {
+        dataChannel.send("mySampler " + url + " " + ext + " " + rel + " " + gain);
+    }
 }
 
 function changeMySampler(url, ext, rel, gain) {
@@ -403,7 +398,9 @@ function onSetTheirSamplerButtonPress() {
     let rel = document.getElementById("theirsamplerrelease").value;
     let gain = document.getElementById("theirgain").value;
     changeTheirSampler(url, ext, rel, gain);
-    dataChannel.send("theirSampler " + url + " " + ext + " " + rel + " " + gain);
+    if (dataChannel && peerConn.connectionState == "connected") {
+        dataChannel.send("theirSampler " + url + " " + ext + " " + rel + " " + gain);
+    }
 }
 
 function changeTheirSampler(url, ext, rel, gain) {
@@ -466,10 +463,133 @@ function onMIDISuccess(midiAccess) {
 
     var inputs = midiAccess.inputs;
     var outputs = midiAccess.outputs;
+    var deviceInfoMessage = "List of devices: [";
     for (var input of midiAccess.inputs.values()) {
+        deviceInfoMessage += input.name + ", ";
         input.onmidimessage = onMidiMessage;
     }
+    deviceInfoMessage += "]";
+    if (inputs.size > 0) {
+        document.getElementById("midi-status").innerHTML = deviceInfoMessage;
+    }
 }
+
+document.addEventListener('keydown', function(event) {
+    if (event.repeat == true) {
+        return;
+    }
+    if (event.srcElement.localName == "input") {
+        return;
+    }
+    let midiKeyCode = -1;
+    switch (event.code) {
+        case "KeyA":
+            midiKeyCode = 60;
+            break;
+        case "KeyW":
+            midiKeyCode = 61;
+            break;
+        case "KeyS":
+            midiKeyCode = 62;
+            break;
+        case "KeyE":
+            midiKeyCode = 63;
+            break;
+        case "KeyD":
+            midiKeyCode = 64;
+            break;
+        case "KeyF":
+            midiKeyCode = 65;
+            break;
+        case "KeyT":
+            midiKeyCode = 66;
+            break;
+        case "KeyG":
+            midiKeyCode = 67;
+            break;
+        case "KeyY":
+            midiKeyCode = 68;
+            break;
+        case "KeyH":
+            midiKeyCode = 69;
+            break;
+        case "KeyU":
+            midiKeyCode = 70;
+            break;
+        case "KeyJ":
+            midiKeyCode = 71;
+            break;
+        case "KeyK":
+            midiKeyCode = 72;
+            break;
+    }
+    if (midiKeyCode != -1) {
+        keyDown(ME, midiKeyCode, 80);
+        if (dataChannel && peerConn.connectionState == "connected") {
+            let midiInfo = '144-' + midiKeyCode + '-80';
+            dataChannel.send(midiInfo);
+        }
+    }
+});
+
+document.addEventListener('keyup', function(event) {
+    if (event.repeat == true) {
+        return;
+    }
+    if (event.srcElement.localName == "input") {
+        return;
+    }
+    let midiKeyCode = -1;
+    switch (event.code) {
+        case "KeyA":
+            midiKeyCode = 60;
+            break;
+        case "KeyW":
+            midiKeyCode = 61;
+            break;
+        case "KeyS":
+            midiKeyCode = 62;
+            break;
+        case "KeyE":
+            midiKeyCode = 63;
+            break;
+        case "KeyD":
+            midiKeyCode = 64;
+            break;
+        case "KeyF":
+            midiKeyCode = 65;
+            break;
+        case "KeyT":
+            midiKeyCode = 66;
+            break;
+        case "KeyG":
+            midiKeyCode = 67;
+            break;
+        case "KeyY":
+            midiKeyCode = 68;
+            break;
+        case "KeyH":
+            midiKeyCode = 69;
+            break;
+        case "KeyU":
+            midiKeyCode = 70;
+            break;
+        case "KeyJ":
+            midiKeyCode = 71;
+            break;
+        case "KeyK":
+            midiKeyCode = 72;
+            break;
+    }
+    if (midiKeyCode != -1) {
+        keyUp(ME, midiKeyCode, 80);
+        if (dataChannel && peerConn.connectionState == "connected") {
+            let midiInfo = '128-' + midiKeyCode + '-80';
+            dataChannel.send(midiInfo);
+        }
+    }
+});
+
 
 function onMidiMessage(message) {
     var command = message.data[0];

@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>P2P Keyboard</title>
+<title>Fourhands</title>
 </head>
 <body>
-  <h1>P2P Keyboard</h1>
-  <p>Many browsers require the user to manually enable audio. Click here to do so.</p>
+  <h1>Fourhands is a P2P piano</h1>
+  <ol>
+  <li>Share the URL with another player to invite them to the room.</li>
+  <li>Plug in a MIDI keyboard (or use the keys ASDFGHJK for a C major scale if you don't have one).</li>
+  <li>Many browsers require the user to manually enable audio. Click the button to do so.</li>
   <button id="play-button">Enable audio</button>
-  <br>
-  <p>See <a href="https://jminjie.github.io/samples">this page</a> for more custom samples (must be C3/C4/C5 mapped. C3/C4 is okay but high octaves will not work.)</p>
-  <p>Customize the instruments below. These options are synchronized between both clients.</p>
+  <li>You should be able to hear your own playing as well as the other player in the room.</li>
+  <li>See <a href="https://jminjie.github.io/samples">this page</a> for more custom samples (must be C3/C4/C5 mapped. C3/C4 is okay but high octaves will not work.)</li>
+  <li>Customize the instruments below. These options are synchronized between both clients.</li>
+  </ol>
+  <div style="border:1px solid #000;padding:15px;background-color:powderblue;display:inline-block">
   <button onclick="onSetMySamplerButtonPress()">Set my sampler</button>
   <input type="text" id="mysamplerurl" size="50" value="https://jminjie.github.io/samples/classic/">
   <input type="text" id="mysamplerext" size="5" value="mp3">
-  Release: <input type="text" id="mysamplerrelease" size="5" value="0.6">
-  Gain: <input type="text" id="mygain" size="5" value="1.0">
+  Release: <input type="number" min="0" max="1" step="0.1" id="mysamplerrelease" size="5" value="0.6">
+  Gain: <input type="number" min="0" max="2" step="0.1" id="mygain" size="5" value="0.3">
+  </div>
   <br>
+  <br>
+  <div style="border:1px solid #000;padding:15px;background-color:#F9E79F;display:inline-block">
   <button onclick="onSetTheirSamplerButtonPress()">Set their sampler</button>
-  <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/classic/">
+  <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/drum/">
   <input type="text" id="theirsamplerext" size="5" value="mp3">
-  Release: <input type="text" id="theirsamplerrelease" size="5" value="0.6">
-  Gain: <input type="text" id="theirgain" size="5" value="1.0">
-
-  <br>
-  <br>
+  Release: <input type="number" min="0" max="1" step="0.1" id="theirsamplerrelease" size="5" value="0.6">
+  Gain: <input type="number" min="0" max="2" step="0.1" id="theirgain" size="5" value="0.8">
+  </div>
+  <h2>Diagnostics</h2>
+  <p id="midi-status">No MIDI device detected. Try refreshing or use the keys ASDFGHJK.</p>
   <button id="send">Send test p2p message</button>
-
+  <p>For seamless jamming, one-way time of 20 ms or less is ideal. Typically this can be acheived on
+  wired connections for fairly nearby players (within 35 miles / 50 km).</p>
   <pre>Round trip time (ms): <span id="ping"></span></pre>
-  <br>
-  <br>
+  <pre>Est oneway time (ms): <span id="ping2"></span></pre>
+  <!--
   <button onclick="startRecording()" id="startRecord">Record</button>
   <button onclick="stopRecording()" id="stopRecord">Finish and download</button>
-
+  -->
   <script src="https://unpkg.com/tone"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
