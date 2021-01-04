@@ -22,6 +22,6 @@ and an optionally wired internet. Because only MIDI data is shared, it is limite
 ## Development
 Deploy with `node index.js`. This will serve the files needed for the page (index.html and js/) and also start the NodeJs server (index.js). (You may have to use sudo, since index.js by default is serving files through https, since MIDI access is only allowed on secure connections).
 
-If you don't have an SSL cert you can comment out the https server and uncomment the http server in index.js.
+If you don't have an SSL cert you can comment out the https server and uncomment the http server in index.js. But note that a secure connection is required for MIDI access (localhost is secure by default).
 
 Client should be available at localhost:30001.
