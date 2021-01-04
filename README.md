@@ -1,7 +1,7 @@
 # Fourhands, the p2p piano
 
 Fourhands uses WebRTC to establish p2p connetions for minimal latency 2-person
-jamming.
+jamming using MIDI keyboards.
 
 For seamless collaboration on Fourhands, one-way time of 20 ms or less is
 ideal. Typically this can be acheived on wired connections for fairly nearby
