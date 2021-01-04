@@ -29,7 +29,6 @@ if (!room) {
 */
 var room = "theonlyroom";
 
-
 /****************************************************************************
 * Signaling server
 ****************************************************************************/
@@ -102,8 +101,8 @@ window.addEventListener('unload', function() {
 /**
 * Send message to signaling server
 */
-function sendMessage(message) {
-  console.log('Client sending message: ', message);
+function sendMessageToServer(message) {
+  console.log('Client sending message to server: ', message);
   socket.emit('message', message);
 }
 
@@ -119,83 +118,84 @@ function signalingMessageCallback(message) {
         console.log("signalingMessageCallback is ignoring null message");
         return;
     }
-  if (message.type === 'offer') {
-    console.log('Got offer. Sending answer to peer.');
-    peerConn.setRemoteDescription(new RTCSessionDescription(message), function() {},
-                                  logError);
-    peerConn.createAnswer(onLocalSessionCreated, logError);
+    if (message.type === 'offer') {
+        console.log('Got offer. Sending answer to peer.');
+        peerConn.setRemoteDescription(new RTCSessionDescription(message), function() {},
+            logError);
+        peerConn.createAnswer(onLocalSessionCreated, logError);
 
-  } else if (message.type === 'answer') {
-    console.log('Got answer.');
-    peerConn.setRemoteDescription(new RTCSessionDescription(message), function() {},
-                                  logError);
+    } else if (message.type === 'answer') {
+        console.log('Got answer.');
+        peerConn.setRemoteDescription(new RTCSessionDescription(message), function() {},
+            logError);
 
-  } else if (message.type === 'candidate') {
-    peerConn.addIceCandidate(new RTCIceCandidate({
-      candidate: message.candidate,
-      sdpMLineIndex: message.label,
-      sdpMid: message.id
-    }));
-    
-  }
+    } else if (message.type === 'candidate') {
+        peerConn.addIceCandidate(new RTCIceCandidate({
+            candidate: message.candidate,
+            sdpMLineIndex: message.label,
+            sdpMid: message.id
+        }));
+
+    }
 }
 
 function createPeerConnection(isInitiator, config) {
-  console.log('Creating Peer connection as initiator?', isInitiator, 'config:',
-              config);
-  peerConn = new RTCPeerConnection(config);
+    console.log('Creating Peer connection as initiator?', isInitiator, 'config:',
+        config);
+    peerConn = new RTCPeerConnection(config);
 
-// send any ice candidates to the other peer
-peerConn.onicecandidate = function(event) {
-  console.log('icecandidate event:', event);
-  if (event.candidate) {
-    sendMessage({
-      type: 'candidate',
-      label: event.candidate.sdpMLineIndex,
-      id: event.candidate.sdpMid,
-      candidate: event.candidate.candidate
-    });
-  } else {
-    console.log('End of candidates.');
-  }
-};
+    // send any ice candidates to the other peer
+    peerConn.onicecandidate = function(event) {
+        //console.log('icecandidate event:', event);
+        if (event.candidate) {
+            sendMessageToServer({
+                type: 'candidate',
+                label: event.candidate.sdpMLineIndex,
+                id: event.candidate.sdpMid,
+                candidate: event.candidate.candidate
+            });
+        } else {
+            console.log('End of candidates.');
+        }
+    };
 
-if (isInitiator) {
-  console.log('Creating Data Channel');
-  dataChannel = peerConn.createDataChannel('midi-data');
-  onDataChannelCreated(dataChannel);
+    if (isInitiator) {
+        console.log('Creating Data Channel');
+        dataChannel = peerConn.createDataChannel('midi-data');
+        onDataChannelCreated(dataChannel);
 
-  console.log('Creating an offer');
-  peerConn.createOffer().then(function(offer) {
-    return peerConn.setLocalDescription(offer);
-  })
-  .then(() => {
-    console.log('sending local desc:', peerConn.localDescription);
-    sendMessage(peerConn.localDescription);
-  })
-  .catch(logError);
+        console.log('Creating an offer');
+        peerConn.createOffer()
+            .then(function(offer) {
+                return peerConn.setLocalDescription(offer);
+            })
+            .then(() => {
+                console.log('sending local desc:', peerConn.localDescription);
+                sendMessageToServer(peerConn.localDescription);
+            })
+            .catch(logError);
 
-} else {
-  peerConn.ondatachannel = function(event) {
-    console.log('ondatachannel:', event.channel);
-    dataChannel = event.channel;
-    onDataChannelCreated(dataChannel);
-  };
-}
+    } else {
+        peerConn.ondatachannel = function(event) {
+            console.log('ondatachannel:', event.channel);
+            dataChannel = event.channel;
+            onDataChannelCreated(dataChannel);
+        };
+    }
 }
 
 function onLocalSessionCreated(desc) {
-  console.log('local session created:', desc);
-  peerConn.setLocalDescription(desc).then(function() {
-    console.log('sending local desc:', peerConn.localDescription);
-    sendMessage(peerConn.localDescription);
-  }).catch(logError);
+    console.log('local session created:', desc);
+    peerConn.setLocalDescription(desc).then(function() {
+        console.log('sending local desc:', peerConn.localDescription);
+        sendMessageToServer(peerConn.localDescription);
+    }).catch(logError);
 }
 
-var ping_time = 0;
+var pingTime = 0;
 function sendPing() {
     dataChannel.send('ping');
-    ping_time = Date.now();
+    pingTime = Date.now();
 }
 
 function onDataChannelCreated(channel) {
@@ -204,7 +204,7 @@ function onDataChannelCreated(channel) {
     channel.onopen = function() {
         console.log('CHANNEL opened!!!');
         sendPing();
-        var intervalID = window.setInterval(sendPing, 1000);
+        window.setInterval(sendPing, 1000);
         sendBtn.disabled = false;
     };
 
@@ -220,38 +220,103 @@ function onDataChannelCreated(channel) {
                 return;
             }
             if (event.data == "pong") {
-                document.getElementById("ping").innerHTML = Date.now() - ping_time;
+                document.getElementById("ping").innerHTML = Date.now() - pingTime;
+                return;
+            }
+            if (event.data.substring(0, 9) == "mySampler") {
+                let samplerData = event.data.split(' ');
+                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                console.log(event.data);
+                return;
+            }
+            if (event.data.substring(0, 12) == "theirSampler") {
+                let samplerData = event.data.split(' ');
+                changeMySampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                console.log(event.data);
                 return;
             }
             console.log(event.data, Date.now());
-            // split string, play tone
-            let midi_data = event.data.split('-');
-            if (midi_data.length == 3) {
-                // looks like midi data to me, lets just play it
-                handleMidiData(parseInt(midi_data[0]), parseInt(midi_data[1]), parseInt(midi_data[2]));
+            let midiData = event.data.split('-');
+            if (midiData.length == 3) {
+                // looks like midi data to me, lets just try to play it
+                playTheirMidi(parseInt(midiData[0]), parseInt(midiData[1]), parseInt(midiData[2]));
             }
             return;
         }
     };
 }
 
-function handleMidiData(command, byte1, byte2) {
-	if (command == 144 || command == 128) {
-		playNote(THEM, command, byte1, byte2);
-	} else if (command == 176 && byte1 == 64) {
-		if (byte2 == 0) {
-			// pedal off received from server
-			pedalOff(THEM);
-		} else {
-			// pedal on received from server
-			pedalOn(THEM);
-		}
-	}
+function playTheirMidi(command, byte1, byte2) {
+    playMidi(THEM, command, byte1, byte2);
 }
 
 /****************************************************************************
-* Aux functions, mostly UI-related
+* MIDI things
 ****************************************************************************/
+
+var NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+// pedal for both samplers
+var myPedal = false;
+var theirPedal = false;
+
+// currently pressed keys for both samplers (used when releasing pedal)
+var myPressedKeys = new Set()
+var theirPressedKeys = new Set()
+
+const ME = 0;
+const THEM = 1;
+
+// gain for both samplers
+var myGain = 1.0;
+var theirGain = 1.0;
+
+const recorder = new Tone.Recorder();
+
+Tone.context.latencyHint = "fastest";
+
+if (navigator.requestMIDIAccess) {
+    console.log('This browser supports WebMIDI!');
+} else {
+    console.log('WebMIDI is not supported in this browser.');
+}
+
+
+navigator.requestMIDIAccess()
+    .then(onMIDISuccess, onMIDIFailure);
+
+var mySampler = new Tone.Sampler({
+	urls: {
+		A1: "A1.mp3",
+		A2: "A2.mp3",
+		A3: "A3.mp3",
+		A4: "A4.mp3",
+		A5: "A5.mp3",
+		A6: "A6.mp3",
+		A7: "A7.mp3",
+	},
+    release: 0.6,
+	//baseUrl: "https://tonejs.github.io/audio/casio/",
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+}).toDestination();
+mySampler.connect(recorder);
+
+
+var theirSampler = new Tone.Sampler({
+	urls: {
+		A1: "A1.mp3",
+		A2: "A2.mp3",
+		A3: "A3.mp3",
+		A4: "A4.mp3",
+		A5: "A5.mp3",
+		A6: "A6.mp3",
+		A7: "A7.mp3",
+	},
+    release: 0.6,
+	//baseUrl: "https://tonejs.github.io/audio/casio/",
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+}).toDestination();
+
 
 function sendTestMessage() {
     if (!dataChannel) {
@@ -281,114 +346,107 @@ function logError(err) {
   }
 }
 
-function playNote(who, command, note, velocity) {
-    //console.log("playing " + command + '-' + note + '-' + velocity);
+function playMidi(who, command, byte1, byte2) {
     switch (command) {
         case 144: // keyDown
-            if (velocity > 0) {
-                keyDown(who, note, velocity);
+            if (byte2 > 0) {
+                keyDown(who, byte1, byte2);
             } else {
-                keyUp(who, note);
+                keyUp(who, byte1);
             }
             break;
         case 128: // keyUp
-            keyUp(who, note);
+            keyUp(who, byte1);
+            break;
+        case 176: // special command
+            if (byte1 == 64) { // pedal
+                if (byte2 == 0) {
+                    pedalOff(who);
+                } else {
+                    pedalOn(who);
+                }
+            }
             break;
     }
 }
 
-function setMySampler() {
+function onSetMySamplerButtonPress() {
     let url = document.getElementById("mysamplerurl").value;
-    my_sampler = new Tone.Sampler({
-        urls: {
-            C3: "C3.wav",
-            C4: "C4.wav",
-            C5: "C5.wav",
-        },
-        baseUrl: url,
-    }).toDestination();
-    console.log("Setting my sample to " + url);
+    let ext = document.getElementById("mysamplerext").value;
+    let rel = document.getElementById("mysamplerrelease").value;
+    let gain = document.getElementById("mygain").value;
+    changeMySampler(url, ext, rel, gain);
+    dataChannel.send("mySampler " + url + " " + ext + " " + rel + " " + gain);
 }
 
-function setTheirSampler() {
+function changeMySampler(url, ext, rel, gain) {
+    console.log("changeMySampler");
+    mySampler = new Tone.Sampler({
+        urls: {
+            C3: "C3." + ext,
+            C4: "C4." + ext,
+            C5: "C5." + ext,
+        },
+        release: rel,
+        baseUrl: url,
+    }).toDestination();
+    myGain = gain;
+    document.getElementById("mysamplerurl").value = url;
+    document.getElementById("mysamplerext").value = ext;
+    document.getElementById("mysamplerrelease").value = rel;
+    document.getElementById("mygain").value = gain;
+}
+
+function onSetTheirSamplerButtonPress() {
     let url = document.getElementById("theirsamplerurl").value;
-    their_sampler = new Tone.Sampler({
-        urls: {
-            C3: "C3.wav",
-            C4: "C4.wav",
-            C5: "C5.wav",
-        },
-        baseUrl: url,
-    }).toDestination();
-    console.log("Setting their sample to " + url);
+    let ext = document.getElementById("theirsamplerext").value;
+    let rel = document.getElementById("theirsamplerrelease").value;
+    let gain = document.getElementById("theirgain").value;
+    changeTheirSampler(url, ext, rel, gain);
+    dataChannel.send("theirSampler " + url + " " + ext + " " + rel + " " + gain);
 }
 
-Tone.context.latencyHint = "fastest";
-var my_sampler = new Tone.Sampler({
-	urls: {
-		A1: "A1.mp3",
-		A2: "A2.mp3",
-		A3: "A3.mp3",
-		A4: "A4.mp3",
-		A5: "A5.mp3",
-		A6: "A6.mp3",
-		A7: "A7.mp3",
-	},
-    release: 0.6,
-	//baseUrl: "https://tonejs.github.io/audio/casio/",
-    baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
-
-var their_sampler = new Tone.Sampler({
-	urls: {
-		A1: "A1.mp3",
-		A2: "A2.mp3",
-		A3: "A3.mp3",
-		A4: "A4.mp3",
-		A5: "A5.mp3",
-		A6: "A6.mp3",
-		A7: "A7.mp3",
-	},
-    release: 0.6,
-	//baseUrl: "https://tonejs.github.io/audio/casio/",
-    baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
-
-
-var NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-
-var my_pedal = false;
-var my_pressed_keys = new Set()
-
-var their_pedal = false;
-var their_pressed_keys = new Set()
-
-const ME = 0;
-const THEM = 1;
+function changeTheirSampler(url, ext, rel, gain) {
+    console.log("changeTheirSampler");
+    theirSampler = new Tone.Sampler({
+        urls: {
+            C3: "C3." + ext,
+            C4: "C4." + ext,
+            C5: "C5." + ext,
+        },
+        baseUrl: url,
+        release: rel,
+    }).toDestination();
+    theirGain = gain;
+    document.getElementById("theirsamplerurl").value = url;
+    document.getElementById("theirsamplerext").value = ext;
+    document.getElementById("theirsamplerrelease").value = rel;
+    document.getElementById("theirgain").value = gain;
+}
 
 
 function keyDown(who, midiValue, velocity) {
     let note = getNote(midiValue);
     if (who === ME) {
-        my_pressed_keys.add(note);
-        my_sampler.triggerAttack(note, Tone.context.currentTime, velocity/120)
+        myPressedKeys.add(note);
+        mySampler.triggerAttack(note, Tone.context.currentTime, velocity*myGain/120)
     } else {
-        their_pressed_keys.add(note);
-        their_sampler.triggerAttack(note, Tone.context.currentTime, velocity/120)
+        theirPressedKeys.add(note);
+        theirSampler.triggerAttack(note, Tone.context.currentTime, velocity*theirGain/120)
     }
 }
 
 function keyUp(who, midiValue) {
     let note = getNote(midiValue);
     if (who === ME) {
-        my_pressed_keys.delete(note)
-        if (!my_pedal) {
-            my_sampler.triggerRelease(note, Tone.context.currentTime)
+        myPressedKeys.delete(note)
+        if (!myPedal) {
+            mySampler.triggerRelease(note, Tone.context.currentTime)
         }
     } else {
-        their_pressed_keys.delete(note)
-        if (!their_pedal) {
-            their_sampler.triggerRelease(note, Tone.context.currentTime)
+        theirPressedKeys.delete(note)
+        if (!theirPedal) {
+            theirSampler.triggerRelease(note, Tone.context.currentTime)
         }
     }
 }
@@ -399,80 +457,54 @@ function getNote(midiValue) {
     return noteLetter + octave;
 }
 
-        if (navigator.requestMIDIAccess) {
-                console.log('This browser supports WebMIDI!');
-        } else {
-                console.log('WebMIDI is not supported in this browser.');
-        }
-
-
-navigator.requestMIDIAccess()
-    .then(onMIDISuccess, onMIDIFailure);
-
-
 function onMIDIFailure() {
         console.log('Could not access your MIDI devices.');
 }
 
 function onMIDISuccess(midiAccess) {
-        console.log(midiAccess);
+    console.log(midiAccess);
 
-        var inputs = midiAccess.inputs;
-        var outputs = midiAccess.outputs;
-        for (var input of midiAccess.inputs.values()) {
-                    input.onmidimessage = getMIDIMessage;
-                }
+    var inputs = midiAccess.inputs;
+    var outputs = midiAccess.outputs;
+    for (var input of midiAccess.inputs.values()) {
+        input.onmidimessage = onMidiMessage;
+    }
 }
 
-function getMIDIMessage(message) {
-    //console.log('midi input detected');
+function onMidiMessage(message) {
     var command = message.data[0];
     var byte1 = message.data[1];
-    var byte2 = (message.data.length > 2) ? message.data[2] : 0; // a velocity value might not be included with a noteOff command
+    // a velocity value might not be included with a noteOff command
+    var byte2 = (message.data.length > 2) ? message.data[2] : 0;
 
-    if (command == 144 || command == 128) {
+    if (dataChannel && peerConn.connectionState == "connected") {
         let midiInfo = command + '-' + byte1 + '-' + byte2;
-        console.log(midiInfo, Date.now());
-        if (dataChannel) {
-            dataChannel.send(midiInfo);
-        }
-        playNote(ME, command, byte1, byte2)
+        dataChannel.send(midiInfo);
     }
-    if (command == 176 && message.data[1] == 64) {
-        // 0 off, 127 on
-        let midiInfo = command + '-' + byte1 + '-' + byte2;
-        if (dataChannel) {
-            dataChannel.send(midiInfo);
-        }
-        if (byte2 == 0) {
-            pedalOff(ME);
-        } else {
-            pedalOn(ME);
-        }
-    }
+    playMidi(ME, command, byte1, byte2)
 }
 
 function pedalOff(who) {
     if (who === ME) {
         console.log("my pedal off");
-        my_pedal = false;
-        let release_keys = getAllKeysWhichArentPressed(who);
-        my_sampler.triggerRelease(release_keys, Tone.context.currentTime)
+        myPedal = false;
+        let releaseKeys = getAllKeysWhichArentPressed(who);
+        mySampler.triggerRelease(releaseKeys, Tone.context.currentTime)
     } else {
         console.log("their pedal off");
-        their_pedal = false;
-        let release_keys = getAllKeysWhichArentPressed(who);
-        their_sampler.triggerRelease(release_keys, Tone.context.currentTime)
+        theirPedal = false;
+        let releaseKeys = getAllKeysWhichArentPressed(who);
+        theirSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
     }
 }
 
 function pedalOn(who) {
     if (who === ME) {
         console.log("my pedal on");
-        my_pedal = true;
+        myPedal = true;
     } else {
         console.log("their pedal on");
-        their_pedal = true;
+        theirPedal = true;
     }
 }
 
@@ -486,7 +518,7 @@ function getAllKeysWhichArentPressed(who) {
     if (who === ME) {
         let toReturn = [];
         for (let i = 0; i < ALL_KEYS.length; i++) {
-            if (!my_pressed_keys.has(ALL_KEYS[i])) {
+            if (!myPressedKeys.has(ALL_KEYS[i])) {
                 toReturn.push(ALL_KEYS[i]);
             }
         }
@@ -494,7 +526,7 @@ function getAllKeysWhichArentPressed(who) {
     } else {
         let toReturn = [];
         for (let i = 0; i < ALL_KEYS.length; i++) {
-            if (!their_pressed_keys.has(ALL_KEYS[i])) {
+            if (!theirPressedKeys.has(ALL_KEYS[i])) {
                 toReturn.push(ALL_KEYS[i]);
             }
         }
@@ -502,4 +534,20 @@ function getAllKeysWhichArentPressed(who) {
     }
 }
 
+function startRecording() {
+    recorder.start();
+}
 
+function stopRecording() {
+	// the recorded audio is returned as a blob
+	const recording = recorder.stop().then(function(blob) {
+        console.log("got blob");
+        console.log(blob);
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.download = "recording.webm";
+            anchor.href = url;
+            anchor.click();
+
+    });
+}

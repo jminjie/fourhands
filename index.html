@@ -8,18 +8,29 @@
   <p>Many browsers require the user to manually enable audio. Click here to do so.</p>
   <button id="play-button">Enable audio</button>
   <br>
-  <p>See <a href="https://jminjie.github.io/samples">this page</a> for more custom samples (must be C3/C4/C5 mapped)</p>
-  <button onclick="setMySampler()">Set my sampler</button>
-  <input type="text" id="mysamplerurl" size="50" value="https://jminjie.github.io/samples/piano_electric_reed/">
+  <p>See <a href="https://jminjie.github.io/samples">this page</a> for more custom samples (must be C3/C4/C5 mapped. C3/C4 is okay but high octaves will not work.)</p>
+  <p>Customize the instruments below. These options are synchronized between both clients.</p>
+  <button onclick="onSetMySamplerButtonPress()">Set my sampler</button>
+  <input type="text" id="mysamplerurl" size="50" value="https://jminjie.github.io/samples/classic/">
+  <input type="text" id="mysamplerext" size="5" value="mp3">
+  Release: <input type="text" id="mysamplerrelease" size="5" value="0.6">
+  Gain: <input type="text" id="mygain" size="5" value="1.0">
   <br>
-  <button onclick="setTheirSampler()">Set their sampler</button>
-  <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/piano_electric_tine/">
+  <button onclick="onSetTheirSamplerButtonPress()">Set their sampler</button>
+  <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/classic/">
+  <input type="text" id="theirsamplerext" size="5" value="mp3">
+  Release: <input type="text" id="theirsamplerrelease" size="5" value="0.6">
+  Gain: <input type="text" id="theirgain" size="5" value="1.0">
 
   <br>
   <br>
   <button id="send">Send test p2p message</button>
 
   <pre>Round trip time (ms): <span id="ping"></span></pre>
+  <br>
+  <br>
+  <button onclick="startRecording()" id="startRecord">Record</button>
+  <button onclick="stopRecording()" id="stopRecord">Finish and download</button>
 
   <script src="https://unpkg.com/tone"></script>
   <script src="/socket.io/socket.io.js"></script>
