@@ -48,6 +48,12 @@ required for MIDI access (localhost is secure by default).
 
 Client should be available at localhost:30001.
 
+## Browser support
+Chrome and Edge work. Firefox does not work as there is [no support for
+MIDI.](https://developer.mozilla.org/en-US/docs/Web/API/MIDIAccess). Other
+browsers are not tested, but should work if they support MIDI, Tone.js, web
+sockets, and WebRTC.
+
 ## Demo video
 I'm going to try to record a short demo video some time in the next few days to
 show how seamless the jamming experience is. For now feel free to try it for

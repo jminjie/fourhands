@@ -69,7 +69,6 @@ socket.emit('create or join', room);
 socket.on('disconnect', function(reason) {
     console.log(`Disconnected: ${reason}.`);
     sendBtn.disabled = true;
-
     document.getElementById("peer-status").innerHTML = "Lost peer connection.";
     document.getElementById("peer-status").style.color = "#000";
     document.getElementById("ping").innerHTML = "";
@@ -77,12 +76,16 @@ socket.on('disconnect', function(reason) {
 });
 
 socket.on('bye', function(room) {
-  console.log(`Peer leaving room ${room}.`);
-  sendBtn.disabled = true;
-  // If peer did not create the room, re-enter to be creator.
-  if (!isInitiator) {
-    window.location.reload();
-  }
+    console.log(`Peer leaving room ${room}.`);
+    sendBtn.disabled = true;
+    document.getElementById("peer-status").innerHTML = "Lost peer connection.";
+    document.getElementById("peer-status").style.color = "#000";
+    document.getElementById("ping").innerHTML = "";
+    document.getElementById("ping2").innerHTML = "";
+    // If peer did not create the room, re-enter to be creator.
+    if (!isInitiator) {
+        window.location.reload();
+    }
 });
 
 window.addEventListener('unload', function() {
@@ -195,6 +198,7 @@ function sendPing() {
     if (peerConnected()) {
         dataChannel.send('ping');
         pingTime = Date.now();
+    } else {
     }
 }
 
@@ -213,6 +217,10 @@ function onDataChannelCreated(channel) {
     channel.onclose = function () {
         console.log('Channel closed.');
         sendBtn.disabled = true;
+        document.getElementById("peer-status").innerHTML = "Lost peer connection.";
+        document.getElementById("peer-status").style.color = "#000";
+        document.getElementById("ping").innerHTML = "";
+        document.getElementById("ping2").innerHTML = "";
     }
 
     channel.onmessage = function onmessage(event) {
@@ -281,13 +289,20 @@ Tone.context.latencyHint = "fastest";
 
 if (navigator.requestMIDIAccess) {
     console.log('This browser supports WebMIDI!');
+    document.getElementById("browser-status").innerHTML = "Browser supports MIDI";
+    document.getElementById("browser-status").style.color = "green";
 } else {
     console.log('WebMIDI is not supported in this browser.');
+    document.getElementById("browser-status").innerHTML = "No browser support for MIDI. Consider trying Chrome or Edge";
+    document.getElementById("browser-status").style.color = "red";
 }
 
-
-navigator.requestMIDIAccess()
-    .then(onMIDISuccess, onMIDIFailure);
+try {
+    navigator.requestMIDIAccess()
+        .then(onMIDISuccess, onMIDIFailure);
+} catch (e) {
+    console.log(e);
+}
 
 var mySampler = new Tone.Sampler({
 	urls: {
