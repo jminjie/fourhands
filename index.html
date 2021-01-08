@@ -8,13 +8,12 @@
   <link rel="stylesheet" href="css/style.css">
   <h1>Fourhands is a P2P piano</h1>
   <ol>
-  <li>Share the URL with another player to invite them to the room.</li>
-  <li>Plug in a MIDI keyboard (or use the keys ASDFGHJK for a C major scale if you don't have one).</li>
-  <li>Many browsers require the user to manually enable audio. Click the button to do so.</li>
+  <li>Share the URL with another player</li>
+  <li>Plug in a MIDI keyboard</li>
+  <li>Click to manually enable audio</li>
   <button id="play-button">Enable audio</button>
   <li>You should be able to hear your own playing as well as the other player in the room.</li>
-  <li>See <a href="https://jminjie.github.io/samples">this page</a> for more custom samples (must be C3/C4/C5 mapped. C3/C4 is okay but high octaves will not work.)</li>
-  <li>Customize the instruments below. These options are synchronized between both clients.</li>
+  <li>See <a href="https://jminjie.github.io/samples">this page</a> for more samples (must be C3/C4/C5 mapped. C3/C4 is okay but high octaves will not work.)</li>
   </ol>
   <div style="border:1px solid #000;padding:15px;background-color:powderblue;display:inline-block">
   <button onclick="onSetMySamplerButtonPress()">Set my sampler</button>
@@ -45,6 +44,11 @@
   <button onclick="startRecording()" id="startRecord">Record</button>
   <button onclick="stopRecording()" id="stopRecord">Finish and download</button>
   -->
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
   <script src="https://unpkg.com/tone"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
