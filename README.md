@@ -50,7 +50,7 @@ Client should be available at localhost:30001.
 
 ## Browser support
 Chrome and Edge work. Firefox does not work as there is [no support for
-MIDI.](https://developer.mozilla.org/en-US/docs/Web/API/MIDIAccess). Other
+MIDI](https://developer.mozilla.org/en-US/docs/Web/API/MIDIAccess). Other
 browsers are not tested, but should work if they support MIDI, Tone.js, web
 sockets, and WebRTC.
 
