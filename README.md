@@ -7,7 +7,7 @@ For seamless collaboration on Fourhands, one-way time of 20 ms or less is
 ideal. Typically this can be acheived on wired connections for fairly nearby
 players (within 35 miles / 50 km).
 
-[Create a room and share the link to invite another
+Try it here: [create a room and share the link to invite another
 player](https://fourhands.jminjie.com).
 
 ## Prior art
