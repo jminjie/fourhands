@@ -55,6 +55,4 @@ browsers are not tested, but should work if they support MIDI, Tone.js, web
 sockets, and WebRTC.
 
 ## Demo video
-I'm going to try to record a short demo video some time in the next few days to
-show how seamless the jamming experience is. For now feel free to try it for
-yourself.
+https://www.youtube.com/watch?v=nIp32IVCVrk.
