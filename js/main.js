@@ -241,6 +241,13 @@ function onDataChannelCreated(channel) {
                 console.log(event.data);
                 return;
             }
+            // only you can set your own loop, so we don't need to listen for myLoopSampler
+            if (event.data.substring(0, 16) == "theirLoopSampler") {
+                let samplerData = event.data.split(' ');
+                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                console.log(event.data);
+                return;
+            }
             if (event.data.substring(0, 12) == "theirSampler") {
                 let samplerData = event.data.split(' ');
                 changeMySampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
@@ -251,7 +258,12 @@ function onDataChannelCreated(channel) {
             let midiData = event.data.split('-');
             if (midiData.length == 3) {
                 // looks like midi data to me, lets just try to play it
-                playTheirMidi(parseInt(midiData[0]), parseInt(midiData[1]), parseInt(midiData[2]));
+                playMidi(THEM, parseInt(midiData[0]), parseInt(midiData[1]), parseInt(midiData[2]));
+            }
+            if (midiData.length == 4 && midiData[0] == "LOOP") {
+                // loop midi data
+                console.log("playing their loop");
+                playMidi(THEIR_LOOP, parseInt(midiData[1]), parseInt(midiData[2]), parseInt(midiData[3]));
             }
             return;
         }
@@ -259,7 +271,6 @@ function onDataChannelCreated(channel) {
 }
 
 function playTheirMidi(command, byte1, byte2) {
-    playMidi(THEM, command, byte1, byte2);
 }
 
 /****************************************************************************
@@ -271,21 +282,41 @@ var NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 // pedal for both samplers
 var myPedal = false;
 var theirPedal = false;
+var myLoopPedal = false;
+var theirLoopPedal = false;
 
 // currently pressed keys for both samplers (used when releasing pedal)
 var myPressedKeys = new Set()
 var theirPressedKeys = new Set()
+var myLoopPressedKeys = new Set()
+var theirLoopPressedKeys = new Set()
 
 const ME = 0;
 const THEM = 1;
+const MY_LOOP = 2;
+const THEIR_LOOP = 3;
 
 // gain for both samplers
 var myGain = 1.0;
 var theirGain = 1.0;
-
-const recorder = new Tone.Recorder();
+var myLoopGain = 1.0;
+var theirLoopGain = 1.0;
 
 Tone.context.latencyHint = "fastest";
+
+// octave for computer keyboard entry
+var octave = 0;
+
+// local loop data
+document.getElementById("startLoopButton").disabled = false;
+document.getElementById("stopLoopButton").disabled = true;
+document.getElementById("playPauseLoopButton").disabled = true;
+var loopStartTime;
+var loopLength;
+var recording = false;
+var loopData = [];
+var playingLoop = false;
+var loopId;
 
 if (navigator.requestMIDIAccess) {
     console.log('This browser supports WebMIDI!');
@@ -318,8 +349,36 @@ var mySampler = new Tone.Sampler({
 	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
 }).toDestination();
-mySampler.connect(recorder);
 
+var myLoopSampler = new Tone.Sampler({
+	urls: {
+		A1: "A1.mp3",
+		A2: "A2.mp3",
+		A3: "A3.mp3",
+		A4: "A4.mp3",
+		A5: "A5.mp3",
+		A6: "A6.mp3",
+		A7: "A7.mp3",
+	},
+    release: 0.6,
+	//baseUrl: "https://tonejs.github.io/audio/casio/",
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+}).toDestination();
+
+var theirLoopSampler = new Tone.Sampler({
+	urls: {
+		A1: "A1.mp3",
+		A2: "A2.mp3",
+		A3: "A3.mp3",
+		A4: "A4.mp3",
+		A5: "A5.mp3",
+		A6: "A6.mp3",
+		A7: "A7.mp3",
+	},
+    release: 0.6,
+	//baseUrl: "https://tonejs.github.io/audio/casio/",
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+}).toDestination();
 
 var theirSampler = new Tone.Sampler({
 	urls: {
@@ -385,6 +444,9 @@ function playMidi(who, command, byte1, byte2) {
             }
             break;
     }
+    if (recording && who == ME) {
+        addToLoop(command, byte1, byte2);
+    }
 }
 
 function onSetMySamplerButtonPress() {
@@ -395,6 +457,17 @@ function onSetMySamplerButtonPress() {
     changeMySampler(url, ext, rel, gain);
     if (peerConnected()) {
         dataChannel.send("mySampler " + url + " " + ext + " " + rel + " " + gain);
+    }
+}
+
+function onSetLoopSamplerButtonPress() {
+    let url = document.getElementById("loopsamplerurl").value;
+    let ext = document.getElementById("loopsamplerext").value;
+    let rel = document.getElementById("loopsamplerrelease").value;
+    let gain = document.getElementById("loopgain").value;
+    changeLoopSampler(url, ext, rel, gain);
+    if (peerConnected()) {
+        dataChannel.send("theirLoopSampler " + url + " " + ext + " " + rel + " " + gain);
     }
 }
 
@@ -414,6 +487,38 @@ function changeMySampler(url, ext, rel, gain) {
     document.getElementById("mysamplerext").value = ext;
     document.getElementById("mysamplerrelease").value = rel;
     document.getElementById("mygain").value = gain;
+}
+
+function changeLoopSampler(url, ext, rel, gain) {
+    console.log("changeLoopSampler");
+    myLoopSampler = new Tone.Sampler({
+        urls: {
+            C3: "C3." + ext,
+            C4: "C4." + ext,
+            C5: "C5." + ext,
+        },
+        release: rel,
+        baseUrl: url,
+    }).toDestination();
+    myLoopGain = gain;
+    document.getElementById("loopsamplerurl").value = url;
+    document.getElementById("loopsamplerext").value = ext;
+    document.getElementById("loopsamplerrelease").value = rel;
+    document.getElementById("loopgain").value = gain;
+}
+
+function changeTheirLoopSampler(url, ext, rel, gain) {
+    console.log("changeTheirLoopSampler");
+    theirLoopSampler = new Tone.Sampler({
+        urls: {
+            C3: "C3." + ext,
+            C4: "C4." + ext,
+            C5: "C5." + ext,
+        },
+        release: rel,
+        baseUrl: url,
+    }).toDestination();
+    theirLoopGain = gain;
 }
 
 function onSetTheirSamplerButtonPress() {
@@ -451,9 +556,15 @@ function keyDown(who, midiValue, velocity) {
     if (who === ME) {
         myPressedKeys.add(note);
         mySampler.triggerAttack(note, Tone.context.currentTime, velocity*myGain/120)
-    } else {
+    } else if (who === THEM) {
         theirPressedKeys.add(note);
         theirSampler.triggerAttack(note, Tone.context.currentTime, velocity*theirGain/120)
+    } else if (who === MY_LOOP) {
+        myLoopPressedKeys.add(note);
+        myLoopSampler.triggerAttack(note, Tone.context.currentTime, velocity*myLoopGain/120)
+    } else if (who === THEIR_LOOP) {
+        theirLoopPressedKeys.add(note);
+        theirLoopSampler.triggerAttack(note, Tone.context.currentTime, velocity*theirLoopGain/120)
     }
 }
 
@@ -464,10 +575,20 @@ function keyUp(who, midiValue) {
         if (!myPedal) {
             mySampler.triggerRelease(note, Tone.context.currentTime)
         }
-    } else {
+    } else if (who === THEM) {
         theirPressedKeys.delete(note)
         if (!theirPedal) {
             theirSampler.triggerRelease(note, Tone.context.currentTime)
+        }
+    } else if (who === MY_LOOP) {
+        myLoopPressedKeys.delete(note)
+        if (!myLoopPedal) {
+            myLoopSampler.triggerRelease(note, Tone.context.currentTime)
+        }
+    } else if (who === THEIR_LOOP) {
+        theirLoopPressedKeys.delete(note)
+        if (!theirLoopPedal) {
+            theirLoopSampler.triggerRelease(note, Tone.context.currentTime)
         }
     }
 }
@@ -547,9 +668,16 @@ document.addEventListener('keydown', function(event) {
         case "KeyK":
             midiKeyCode = 72;
             break;
+        case "KeyZ":
+            octave--;
+            break;
+        case "KeyX":
+            octave++;
+            break;
     }
     if (midiKeyCode != -1) {
-        keyDown(ME, midiKeyCode, 80);
+        midiKeyCode += octave*12;
+        playMidi(ME, 144, midiKeyCode, 80);
         if (peerConnected()) {
             let midiInfo = '144-' + midiKeyCode + '-80';
             dataChannel.send(midiInfo);
@@ -607,14 +735,14 @@ document.addEventListener('keyup', function(event) {
             break;
     }
     if (midiKeyCode != -1) {
-        keyUp(ME, midiKeyCode, 80);
+        midiKeyCode += octave*12;
+        playMidi(ME, 128, midiKeyCode, 0);
         if (peerConnected()) {
-            let midiInfo = '128-' + midiKeyCode + '-80';
+            let midiInfo = '128-' + midiKeyCode + '-0';
             dataChannel.send(midiInfo);
         }
     }
 });
-
 
 function onMidiMessage(message) {
     var command = message.data[0];
@@ -629,17 +757,40 @@ function onMidiMessage(message) {
     playMidi(ME, command, byte1, byte2)
 }
 
+function onLoopMidiMessage(message) {
+    var command = message.data[0];
+    var byte1 = message.data[1];
+    // a velocity value might not be included with a noteOff command
+    var byte2 = (message.data.length > 2) ? message.data[2] : 0;
+
+    if (peerConnected()) {
+        let midiInfo = command + '-' + byte1 + '-' + byte2;
+        dataChannel.send("LOOP-" + midiInfo);
+    }
+    playMidi(MY_LOOP, command, byte1, byte2)
+}
+
 function pedalOff(who) {
     if (who === ME) {
         console.log("my pedal off");
         myPedal = false;
         let releaseKeys = getAllKeysWhichArentPressed(who);
         mySampler.triggerRelease(releaseKeys, Tone.context.currentTime)
-    } else {
+    } else if (who === THEM) {
         console.log("their pedal off");
         theirPedal = false;
         let releaseKeys = getAllKeysWhichArentPressed(who);
         theirSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
+    } else if (who === MY_LOOP) {
+        console.log("my loop pedal off");
+        myLoopPedal = false;
+        let releaseKeys = getAllKeysWhichArentPressed(who);
+        myLoopSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
+    } else if (who === THEIR_LOOP) {
+        console.log("their loop pedal off");
+        theirLoopPedal = false;
+        let releaseKeys = getAllKeysWhichArentPressed(who);
+        theirLoopSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
     }
 }
 
@@ -647,9 +798,15 @@ function pedalOn(who) {
     if (who === ME) {
         console.log("my pedal on");
         myPedal = true;
-    } else {
+    } else if (who === THEM) {
         console.log("their pedal on");
         theirPedal = true;
+    } else if (who === MY_LOOP) {
+        console.log("their loop pedal on");
+        myLoopPedal = true;
+    } else if (who === THEIR_LOOP) {
+        console.log("their loop pedal on");
+        theirLoopPedal = true;
     }
 }
 
@@ -668,7 +825,7 @@ function getAllKeysWhichArentPressed(who) {
             }
         }
         return toReturn;
-    } else {
+    } else if (who === THEM) {
         let toReturn = [];
         for (let i = 0; i < ALL_KEYS.length; i++) {
             if (!theirPressedKeys.has(ALL_KEYS[i])) {
@@ -676,23 +833,95 @@ function getAllKeysWhichArentPressed(who) {
             }
         }
         return toReturn;
+    } else if (who === MY_LOOP) {
+        let toReturn = [];
+        for (let i = 0; i < ALL_KEYS.length; i++) {
+            if (!myLoopPressedKeys.has(ALL_KEYS[i])) {
+                toReturn.push(ALL_KEYS[i]);
+            }
+        }
+        return toReturn;
+    } else if (who === THEIR_LOOP) {
+        let toReturn = [];
+        for (let i = 0; i < ALL_KEYS.length; i++) {
+            if (!theirLoopPressedKeys.has(ALL_KEYS[i])) {
+                toReturn.push(ALL_KEYS[i]);
+            }
+        }
+        return toReturn;
     }
 }
 
-function startRecording() {
-    recorder.start();
+function addToLoop(command, byte1, byte2) {
+    if (loopData.length === 0 && command == 128) {
+        // if first note in loop is key up, assume we missed keydown and add it automatically
+        loopData.push({
+            time: 0,
+            command: 144, // keydown
+            byte1: byte1,
+            byte2: 80, // assume 80 velocity
+        });
+    }
+    loopData.push({
+        time: Date.now() - loopStartTime,
+        command: command,
+        byte1: byte1,
+        byte2: byte2,
+    });
 }
 
-function stopRecording() {
-	// the recorded audio is returned as a blob
-	const recording = recorder.stop().then(function(blob) {
-        console.log("got blob");
-        console.log(blob);
-            const url = URL.createObjectURL(blob);
-            const anchor = document.createElement("a");
-            anchor.download = "recording.webm";
-            anchor.href = url;
-            anchor.click();
+function playPauseLoop() {
+    if (playingLoop == false) {
+        playingLoop = true;
+        playLoopOnce();
+        loopId = setInterval(playLoopOnce, loopLength);
+    } else {
+        clearInterval(loopId);
+        stopPlayingLoop();
+        playingLoop = false;
+    }
+}
 
-    });
+loopTimeoutIds = []
+function playLoopOnce() {
+    for (let note of loopData) {
+        noteData = [note.command, note.byte1, note.byte2];
+        let message = {
+            data: noteData,
+        };
+        loopTimeoutIds.push(setTimeout(onLoopMidiMessage, note.time, message));
+    }
+}
+
+function stopPlayingLoop() {
+    for (let id of loopTimeoutIds) {
+        clearTimeout(id);
+    }
+}
+
+function beginLoop() {
+    loopData = [];
+    console.log("begin loop");
+    loopStartTime = Date.now();
+    recording = true;
+    document.getElementById("startLoopButton").disabled = true;
+    document.getElementById("stopLoopButton").disabled = false;
+    // automatically set loop sampler things equal to my sampler
+    let url = document.getElementById("mysamplerurl").value;
+    let ext = document.getElementById("mysamplerext").value;
+    let rel = document.getElementById("mysamplerrelease").value;
+    let gain = document.getElementById("mygain").value;
+    changeLoopSampler(url, ext, rel, gain);
+    if (peerConnected()) {
+        dataChannel.send("theirLoopSampler " + url + " " + ext + " " + rel + " " + gain);
+    }
+}
+
+function finishLoop() {
+    console.log("finish loop");
+    recording = false;
+    loopLength = Date.now() - loopStartTime;
+    document.getElementById("startLoopButton").disabled = false;
+    document.getElementById("stopLoopButton").disabled = true;
+    document.getElementById("playPauseLoopButton").disabled = false;
 }
