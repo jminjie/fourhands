@@ -10,21 +10,24 @@ const Fs = require('fs');
 var fileServer = new(nodeStatic.Server)();
 
 var http = require('http');
-/*
-var app = http.createServer(function(req, res) {
-      fileServer.serve(req, res);
+
+const DEBUG = false;
+
+if (DEBUG) {
+    var app = http.createServer(function(req, res) {
+        fileServer.serve(req, res);
     }).listen(30001);
-*/
+} else {
+    var secureApp = Https.createServer({
+        key: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/privkey.pem'),
+        cert: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/cert.pem'),
+        ca: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/chain.pem')
+    }, function(req, res) {
+        fileServer.serve(req, res);
+    }).listen(30001);
+}
 
-var secureApp = Https.createServer({
-      key: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/privkey.pem'),
-      cert: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/cert.pem'),
-      ca: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/chain.pem')
-}, function(req, res) {
-  fileServer.serve(req, res);
-}).listen(30001);
-
-var io = socketIO.listen(secureApp);
+var io = socketIO.listen(DEBUG ? app : secureApp);
 io.sockets.on('connection', function(socket) {
 
   // convenience function to log server messages on the client

@@ -335,6 +335,8 @@ try {
     console.log(e);
 }
 
+const reverb = new Tone.Reverb().toDestination();
+
 var mySampler = new Tone.Sampler({
 	urls: {
 		A1: "A1.mp3",
@@ -348,7 +350,7 @@ var mySampler = new Tone.Sampler({
     release: 0.6,
 	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
+}).connect(reverb).toDestination();
 
 var myLoopSampler = new Tone.Sampler({
 	urls: {
@@ -363,7 +365,7 @@ var myLoopSampler = new Tone.Sampler({
     release: 0.6,
 	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
+}).connect(reverb).toDestination();
 
 var theirLoopSampler = new Tone.Sampler({
 	urls: {
@@ -378,7 +380,7 @@ var theirLoopSampler = new Tone.Sampler({
     release: 0.6,
 	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
+}).connect(reverb).toDestination();
 
 var theirSampler = new Tone.Sampler({
 	urls: {
@@ -393,7 +395,7 @@ var theirSampler = new Tone.Sampler({
     release: 0.6,
 	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
+}).connect(reverb).toDestination();
 
 
 function sendTestMessage() {
@@ -482,7 +484,7 @@ function changeMySampler(url, rel, gain) {
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).toDestination();
+            }).connect(reverb).toDestination();
             fetchConfig(url);
             myGain = gain;
             document.getElementById("mysamplerurl").value = url;
@@ -500,7 +502,7 @@ function changeLoopSampler(url, rel, gain) {
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).toDestination();
+            }).connect(reverb).toDestination();
             fetchConfig(url);
             myLoopGain = gain;
             document.getElementById("loopsamplerurl").value = url;
@@ -518,7 +520,7 @@ function changeTheirLoopSampler(url, rel, gain) {
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).toDestination();
+            }).connect(reverb).toDestination();
             fetchConfig(url);
             theirLoopGain = gain;
         });
@@ -543,7 +545,7 @@ function changeTheirSampler(url, rel, gain) {
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).toDestination();
+            }).connect(reverb).toDestination();
             fetchConfig(url);
             theirGain = gain;
             document.getElementById("theirsamplerurl").value = url;
