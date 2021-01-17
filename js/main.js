@@ -237,20 +237,20 @@ function onDataChannelCreated(channel) {
             }
             if (event.data.substring(0, 9) == "mySampler") {
                 let samplerData = event.data.split(' ');
-                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3]);
                 console.log(event.data);
                 return;
             }
             // only you can set your own loop, so we don't need to listen for myLoopSampler
             if (event.data.substring(0, 16) == "theirLoopSampler") {
                 let samplerData = event.data.split(' ');
-                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3]);
                 console.log(event.data);
                 return;
             }
             if (event.data.substring(0, 12) == "theirSampler") {
                 let samplerData = event.data.split(' ');
-                changeMySampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                changeMySampler(samplerData[1], samplerData[2], samplerData[3]);
                 console.log(event.data);
                 return;
             }
@@ -451,105 +451,106 @@ function playMidi(who, command, byte1, byte2) {
 
 function onSetMySamplerButtonPress() {
     let url = document.getElementById("mysamplerurl").value;
-    let ext = document.getElementById("mysamplerext").value;
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
-    changeMySampler(url, ext, rel, gain);
+    changeMySampler(url, rel, gain);
     if (peerConnected()) {
-        dataChannel.send("mySampler " + url + " " + ext + " " + rel + " " + gain);
+        dataChannel.send("mySampler " + url + " " + rel + " " + gain);
     }
 }
 
 function onSetLoopSamplerButtonPress() {
     let url = document.getElementById("loopsamplerurl").value;
-    let ext = document.getElementById("loopsamplerext").value;
     let rel = document.getElementById("loopsamplerrelease").value;
     let gain = document.getElementById("loopgain").value;
-    changeLoopSampler(url, ext, rel, gain);
+    changeLoopSampler(url, rel, gain);
     if (peerConnected()) {
-        dataChannel.send("theirLoopSampler " + url + " " + ext + " " + rel + " " + gain);
+        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain);
     }
 }
 
-function changeMySampler(url, ext, rel, gain) {
+function fetchConfig(url) {
+}
+
+
+function changeMySampler(url, rel, gain) {
     console.log("changeMySampler");
-    mySampler = new Tone.Sampler({
-        urls: {
-            C3: "C3." + ext,
-            C4: "C4." + ext,
-            C5: "C5." + ext,
-        },
-        release: rel,
-        baseUrl: url,
-    }).toDestination();
-    myGain = gain;
-    document.getElementById("mysamplerurl").value = url;
-    document.getElementById("mysamplerext").value = ext;
-    document.getElementById("mysamplerrelease").value = rel;
-    document.getElementById("mygain").value = gain;
+    fetch(url + 'config.json')
+        .then(response => response.json())
+        .then(function (mapping) {
+            mySampler = new Tone.Sampler({
+                urls: mapping,
+                release: rel,
+                baseUrl: url,
+            }).toDestination();
+            fetchConfig(url);
+            myGain = gain;
+            document.getElementById("mysamplerurl").value = url;
+            document.getElementById("mysamplerrelease").value = rel;
+            document.getElementById("mygain").value = gain;
+        });
 }
 
-function changeLoopSampler(url, ext, rel, gain) {
+function changeLoopSampler(url, rel, gain) {
     console.log("changeLoopSampler");
-    myLoopSampler = new Tone.Sampler({
-        urls: {
-            C3: "C3." + ext,
-            C4: "C4." + ext,
-            C5: "C5." + ext,
-        },
-        release: rel,
-        baseUrl: url,
-    }).toDestination();
-    myLoopGain = gain;
-    document.getElementById("loopsamplerurl").value = url;
-    document.getElementById("loopsamplerext").value = ext;
-    document.getElementById("loopsamplerrelease").value = rel;
-    document.getElementById("loopgain").value = gain;
+    fetch(url + 'config.json')
+        .then(response => response.json())
+        .then(function (mapping) {
+            myLoopSampler = new Tone.Sampler({
+                urls: mapping,
+                release: rel,
+                baseUrl: url,
+            }).toDestination();
+            fetchConfig(url);
+            myLoopGain = gain;
+            document.getElementById("loopsamplerurl").value = url;
+            document.getElementById("loopsamplerrelease").value = rel;
+            document.getElementById("loopgain").value = gain;
+        });
 }
 
-function changeTheirLoopSampler(url, ext, rel, gain) {
+function changeTheirLoopSampler(url, rel, gain) {
     console.log("changeTheirLoopSampler");
-    theirLoopSampler = new Tone.Sampler({
-        urls: {
-            C3: "C3." + ext,
-            C4: "C4." + ext,
-            C5: "C5." + ext,
-        },
-        release: rel,
-        baseUrl: url,
-    }).toDestination();
-    theirLoopGain = gain;
+    fetch(url + 'config.json')
+        .then(response => response.json())
+        .then(function (mapping) {
+            theirLoopSampler = new Tone.Sampler({
+                urls: mapping,
+                release: rel,
+                baseUrl: url,
+            }).toDestination();
+            fetchConfig(url);
+            theirLoopGain = gain;
+        });
 }
 
 function onSetTheirSamplerButtonPress() {
     let url = document.getElementById("theirsamplerurl").value;
-    let ext = document.getElementById("theirsamplerext").value;
     let rel = document.getElementById("theirsamplerrelease").value;
     let gain = document.getElementById("theirgain").value;
-    changeTheirSampler(url, ext, rel, gain);
+    changeTheirSampler(url, rel, gain);
     if (peerConnected()) {
-        dataChannel.send("theirSampler " + url + " " + ext + " " + rel + " " + gain);
+        dataChannel.send("theirSampler " + url + " " + rel + " " + gain);
     }
 }
 
-function changeTheirSampler(url, ext, rel, gain) {
+function changeTheirSampler(url, rel, gain) {
     console.log("changeTheirSampler");
-    theirSampler = new Tone.Sampler({
-        urls: {
-            C3: "C3." + ext,
-            C4: "C4." + ext,
-            C5: "C5." + ext,
-        },
-        baseUrl: url,
-        release: rel,
-    }).toDestination();
-    theirGain = gain;
-    document.getElementById("theirsamplerurl").value = url;
-    document.getElementById("theirsamplerext").value = ext;
-    document.getElementById("theirsamplerrelease").value = rel;
-    document.getElementById("theirgain").value = gain;
+    fetch(url + 'config.json')
+        .then(response => response.json())
+        .then(function (mapping) {
+            theirSampler = new Tone.Sampler({
+                urls: mapping,
+                release: rel,
+                baseUrl: url,
+            }).toDestination();
+            fetchConfig(url);
+            theirGain = gain;
+            document.getElementById("theirsamplerurl").value = url;
+            document.getElementById("theirsamplerrelease").value = rel;
+            document.getElementById("theirgain").value = gain;
+        });
 }
-
 
 function keyDown(who, midiValue, velocity) {
     let note = getNote(midiValue);
@@ -908,12 +909,11 @@ function beginLoop() {
     document.getElementById("stopLoopButton").disabled = false;
     // automatically set loop sampler things equal to my sampler
     let url = document.getElementById("mysamplerurl").value;
-    let ext = document.getElementById("mysamplerext").value;
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
-    changeLoopSampler(url, ext, rel, gain);
+    changeLoopSampler(url, rel, gain);
     if (peerConnected()) {
-        dataChannel.send("theirLoopSampler " + url + " " + ext + " " + rel + " " + gain);
+        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain);
     }
 }
 

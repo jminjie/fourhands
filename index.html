@@ -13,12 +13,11 @@
   <li>Click to manually enable audio</li>
   <button id="play-button">Enable audio</button>
   <li>You should be able to hear your own playing as well as the other player in the room.</li>
-  <li>See <a href="https://jminjie.github.io/samples">this page</a> for more samples (must be C3/C4/C5 mapped. C3/C4 is okay but high octaves will not work.)</li>
+  <li>See <a href="https://jminjie.github.io/samples">this page</a> for more samples.</li>
   </ol>
   <div style="border:1px solid #000;padding:15px;background-color:powderblue;display:inline-block">
   <button onclick="onSetMySamplerButtonPress()">Set my sampler</button>
   <input type="text" id="mysamplerurl" size="50" value="https://jminjie.github.io/samples/classic/">
-  <input type="text" id="mysamplerext" size="5" value="mp3">
   Release: <input type="number" min="0" max="1" step="0.1" id="mysamplerrelease" size="5" value="0.6">
   Gain: <input type="number" min="0" max="2" step="0.1" id="mygain" size="5" value="0.3">
   </div>
@@ -27,7 +26,6 @@
   <div style="border:1px solid #000;padding:15px;background-color:#F9E79F;display:inline-block">
   <button onclick="onSetTheirSamplerButtonPress()">Set their sampler</button>
   <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/drum/">
-  <input type="text" id="theirsamplerext" size="5" value="mp3">
   Release: <input type="number" min="0" max="1" step="0.1" id="theirsamplerrelease" size="5" value="0.6">
   Gain: <input type="number" min="0" max="2" step="0.1" id="theirgain" size="5" value="0.8">
   </div>
@@ -41,7 +39,6 @@
   <br>
   <button onclick="onSetLoopSamplerButtonPress()">Set loop sampler</button>
   <input type="text" id="loopsamplerurl" size="50" value="https://jminjie.github.io/samples/classic/">
-  <input type="text" id="loopsamplerext" size="5" value="mp3">
   Release: <input type="number" min="0" max="1" step="0.1" id="loopsamplerrelease" size="5" value="0.6">
   Gain: <input type="number" min="0" max="2" step="0.1" id="loopgain" size="5" value="0.3">
   </div>
