@@ -237,20 +237,20 @@ function onDataChannelCreated(channel) {
             }
             if (event.data.substring(0, 9) == "mySampler") {
                 let samplerData = event.data.split(' ');
-                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3]);
+                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
                 console.log(event.data);
                 return;
             }
             // only you can set your own loop, so we don't need to listen for myLoopSampler
             if (event.data.substring(0, 16) == "theirLoopSampler") {
                 let samplerData = event.data.split(' ');
-                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3]);
+                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
                 console.log(event.data);
                 return;
             }
             if (event.data.substring(0, 12) == "theirSampler") {
                 let samplerData = event.data.split(' ');
-                changeMySampler(samplerData[1], samplerData[2], samplerData[3]);
+                changeMySampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
                 console.log(event.data);
                 return;
             }
@@ -335,7 +335,7 @@ try {
     console.log(e);
 }
 
-const reverb = new Tone.Reverb().toDestination();
+const default_reverb = new Tone.Reverb(1.5).toDestination();
 
 var mySampler = new Tone.Sampler({
 	urls: {
@@ -348,9 +348,8 @@ var mySampler = new Tone.Sampler({
 		A7: "A7.mp3",
 	},
     release: 0.6,
-	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).connect(reverb).toDestination();
+}).connect(default_reverb).toDestination();
 
 var myLoopSampler = new Tone.Sampler({
 	urls: {
@@ -363,9 +362,8 @@ var myLoopSampler = new Tone.Sampler({
 		A7: "A7.mp3",
 	},
     release: 0.6,
-	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).connect(reverb).toDestination();
+}).connect(default_reverb).toDestination();
 
 var theirLoopSampler = new Tone.Sampler({
 	urls: {
@@ -378,9 +376,8 @@ var theirLoopSampler = new Tone.Sampler({
 		A7: "A7.mp3",
 	},
     release: 0.6,
-	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).connect(reverb).toDestination();
+}).connect(default_reverb).toDestination();
 
 var theirSampler = new Tone.Sampler({
 	urls: {
@@ -393,9 +390,8 @@ var theirSampler = new Tone.Sampler({
 		A7: "A7.mp3",
 	},
     release: 0.6,
-	//baseUrl: "https://tonejs.github.io/audio/casio/",
     baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).connect(reverb).toDestination();
+}).connect(default_reverb).toDestination();
 
 
 function sendTestMessage() {
@@ -455,9 +451,10 @@ function onSetMySamplerButtonPress() {
     let url = document.getElementById("mysamplerurl").value;
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
-    changeMySampler(url, rel, gain);
+    let decay = document.getElementById("mydecay").value;
+    changeMySampler(url, rel, gain, decay);
     if (peerConnected()) {
-        dataChannel.send("mySampler " + url + " " + rel + " " + gain);
+        dataChannel.send("mySampler " + url + " " + rel + " " + gain + " " + decay);
     }
 }
 
@@ -465,21 +462,19 @@ function onSetLoopSamplerButtonPress() {
     let url = document.getElementById("loopsamplerurl").value;
     let rel = document.getElementById("loopsamplerrelease").value;
     let gain = document.getElementById("loopgain").value;
-    changeLoopSampler(url, rel, gain);
+    let decay = document.getElementById("loopdecay").value;
+    changeLoopSampler(url, rel, gain, decay);
     if (peerConnected()) {
-        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain);
+        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain + " " + decay);
     }
 }
 
-function fetchConfig(url) {
-}
-
-
-function changeMySampler(url, rel, gain) {
+function changeMySampler(url, rel, gain, decay) {
     console.log("changeMySampler");
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
+            let reverb = new Tone.Reverb(decay).toDestination();
             mySampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
@@ -493,11 +488,12 @@ function changeMySampler(url, rel, gain) {
         });
 }
 
-function changeLoopSampler(url, rel, gain) {
+function changeLoopSampler(url, rel, gain, decay) {
     console.log("changeLoopSampler");
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
+            let reverb = new Tone.Reverb(decay).toDestination();
             myLoopSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
@@ -511,11 +507,12 @@ function changeLoopSampler(url, rel, gain) {
         });
 }
 
-function changeTheirLoopSampler(url, rel, gain) {
+function changeTheirLoopSampler(url, rel, gain, decay) {
     console.log("changeTheirLoopSampler");
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
+            let reverb = new Tone.Reverb(decay).toDestination();
             theirLoopSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
@@ -530,17 +527,19 @@ function onSetTheirSamplerButtonPress() {
     let url = document.getElementById("theirsamplerurl").value;
     let rel = document.getElementById("theirsamplerrelease").value;
     let gain = document.getElementById("theirgain").value;
-    changeTheirSampler(url, rel, gain);
+    let decay = document.getElementById("theirdecay").value;
+    changeTheirSampler(url, rel, gain, decay);
     if (peerConnected()) {
-        dataChannel.send("theirSampler " + url + " " + rel + " " + gain);
+        dataChannel.send("theirSampler " + url + " " + rel + " " + gain + " " + decay);
     }
 }
 
-function changeTheirSampler(url, rel, gain) {
+function changeTheirSampler(url, rel, gain, decay) {
     console.log("changeTheirSampler");
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
+            let reverb = new Tone.Reverb(decay).toDestination();
             theirSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
