@@ -4,20 +4,19 @@ var os = require('os');
 var nodeStatic = require('node-static');
 var socketIO = require('socket.io');
 
-const Https = require('https');
-const Fs = require('fs');
-
 var fileServer = new(nodeStatic.Server)();
 
-var http = require('http');
-
-const DEBUG = false;
+const DEBUG = (process.argv[2] == "debug") ? true : false;
 
 if (DEBUG) {
+    console.log("Running in debug mode. Note that MIDI is not available without HTTPS");
+    const http = require('http');
     var app = http.createServer(function(req, res) {
         fileServer.serve(req, res);
     }).listen(30001);
 } else {
+    const Https = require('https');
+    const Fs = require('fs');
     var secureApp = Https.createServer({
         key: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/privkey.pem'),
         cert: Fs.readFileSync('/etc/letsencrypt/live/jminjie.com/cert.pem'),
