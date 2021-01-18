@@ -262,7 +262,6 @@ function onDataChannelCreated(channel) {
             }
             if (midiData.length == 4 && midiData[0] == "LOOP") {
                 // loop midi data
-                console.log("playing their loop");
                 playMidi(THEIR_LOOP, parseInt(midiData[1]), parseInt(midiData[2]), parseInt(midiData[3]));
             }
             return;
@@ -474,17 +473,17 @@ function changeMySampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(decay).toDestination();
+            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             mySampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
             }).connect(reverb).toDestination();
-            fetchConfig(url);
-            myGain = gain;
+            myGain = parseFloat(gain);
             document.getElementById("mysamplerurl").value = url;
             document.getElementById("mysamplerrelease").value = rel;
             document.getElementById("mygain").value = gain;
+            document.getElementById("mydecay").value = decay;
         });
 }
 
@@ -493,17 +492,17 @@ function changeLoopSampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(decay).toDestination();
+            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             myLoopSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
             }).connect(reverb).toDestination();
-            fetchConfig(url);
-            myLoopGain = gain;
+            myLoopGain = parseFloat(gain);
             document.getElementById("loopsamplerurl").value = url;
             document.getElementById("loopsamplerrelease").value = rel;
             document.getElementById("loopgain").value = gain;
+            document.getElementById("loopdecay").value = decay;
         });
 }
 
@@ -512,14 +511,13 @@ function changeTheirLoopSampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(decay).toDestination();
+            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             theirLoopSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
             }).connect(reverb).toDestination();
-            fetchConfig(url);
-            theirLoopGain = gain;
+            theirLoopGain = parseFloat(gain);
         });
 }
 
@@ -539,17 +537,17 @@ function changeTheirSampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(decay).toDestination();
+            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             theirSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
             }).connect(reverb).toDestination();
-            fetchConfig(url);
-            theirGain = gain;
+            theirGain = parseFloat(gain);
             document.getElementById("theirsamplerurl").value = url;
             document.getElementById("theirsamplerrelease").value = rel;
             document.getElementById("theirgain").value = gain;
+            document.getElementById("theirdecay").value = decay;
         });
 }
 
@@ -774,22 +772,18 @@ function onLoopMidiMessage(message) {
 
 function pedalOff(who) {
     if (who === ME) {
-        console.log("my pedal off");
         myPedal = false;
         let releaseKeys = getAllKeysWhichArentPressed(who);
         mySampler.triggerRelease(releaseKeys, Tone.context.currentTime)
     } else if (who === THEM) {
-        console.log("their pedal off");
         theirPedal = false;
         let releaseKeys = getAllKeysWhichArentPressed(who);
         theirSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
     } else if (who === MY_LOOP) {
-        console.log("my loop pedal off");
         myLoopPedal = false;
         let releaseKeys = getAllKeysWhichArentPressed(who);
         myLoopSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
     } else if (who === THEIR_LOOP) {
-        console.log("their loop pedal off");
         theirLoopPedal = false;
         let releaseKeys = getAllKeysWhichArentPressed(who);
         theirLoopSampler.triggerRelease(releaseKeys, Tone.context.currentTime)
@@ -798,16 +792,12 @@ function pedalOff(who) {
 
 function pedalOn(who) {
     if (who === ME) {
-        console.log("my pedal on");
         myPedal = true;
     } else if (who === THEM) {
-        console.log("their pedal on");
         theirPedal = true;
     } else if (who === MY_LOOP) {
-        console.log("their loop pedal on");
         myLoopPedal = true;
     } else if (who === THEIR_LOOP) {
-        console.log("their loop pedal on");
         theirLoopPedal = true;
     }
 }
@@ -912,9 +902,10 @@ function beginLoop() {
     let url = document.getElementById("mysamplerurl").value;
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
-    changeLoopSampler(url, rel, gain);
+    let decay = document.getElementById("mydecay").value;
+    changeLoopSampler(url, rel, gain, decay);
     if (peerConnected()) {
-        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain);
+        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain + " " + decay);
     }
 }
 
