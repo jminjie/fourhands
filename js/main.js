@@ -557,6 +557,7 @@ function changeTheirSampler(url, rel, gain, decay) {
                 theirSampler.connect(reverb);
             }
             theirGain = parseFloat(gain);
+            sound2 = Sound.from( theirSampler, theirSampler.context ).analyze(256);
             document.getElementById("theirsamplerurl").value = url;
             document.getElementById("theirsamplerrelease").value = rel;
             document.getElementById("theirgain").value = gain;
@@ -939,10 +940,12 @@ var paused = false;
 function toggleVisual() {
     if (paused) {
         space.resume();
+        space2.resume();
         paused = false;
     } else {
         paused = true;
         space.pause();
+        space2.pause();
     }
 }
 
@@ -950,7 +953,11 @@ function toggleVisual() {
 /****************************************************************************
 * Visualization logic
 ****************************************************************************/
-Pts.quickStart( "pts", "powderblue" );
+Pts.namespace( window );
+var space = new CanvasSpace("#pts");
+space.setup({ bgcolor: "powderblue" });
+var form = space.getForm();
+
 var sound = Sound.from( mySampler, mySampler.context ).analyze(256);
 
 space.add({
@@ -979,3 +986,36 @@ space.add({
     }
 });
 space.play();
+
+var space2 = new CanvasSpace("#pts2");
+space2.setup({ bgcolor: "#F9E79F" });
+var form2 = space2.getForm();
+
+var sound2 = Sound.from( theirSampler, theirSampler.context ).analyze(256);
+
+space2.add({
+    animate: (time) => {
+        if (theirSampler.context.state === 'suspended') { // mostly for safari
+            form2.fillOnly("#fff").text( [20, 30], "Click anywhere to start" );
+        }
+
+        var area = space2.size;
+        var idx = space2.pointer.$divide( area ).floor();
+        var rect = [idx.$multiply(area), idx.$multiply(area).add(area)];
+
+        let t1 = sound2.timeDomainTo( area, rect[0].$subtract(0, area.y/2) );
+        let t2 = t1.map( t => t.$add(0, area.y) ).reverse();
+        let freqs = sound2.freqDomainTo( [area.x*2, area.y/2], [rect[0].x, 0] ).map( f => [[f.x, rect[0].y+area.y/2-f.y], [f.x, rect[0].y+area.y/2+f.y]] );
+
+        form2.fillOnly("#F9E79F").polygon( t1.concat(t2) );
+        form2.strokeOnly("black", Math.ceil(area.x/128) ).lines( freqs );
+    },
+    action: (type, x, y) => {
+        if (type === "up") { // for safari
+            if (theirSampler.context.state === 'suspended') {
+                theirSampler.context.resume();
+            }
+        }
+    }
+});
+space2.play();
