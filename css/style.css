@@ -1,5 +1,5 @@
 #footer {
-   position:fixed;
+   position:static;
    left:0px;
    bottom:0px;
    height:130px;
@@ -10,4 +10,11 @@
 * html #footer {
    position:absolute;
    top:expression((0-(footer.offsetHeight)+(document.documentElement.clientHeight ? document.documentElement.clientHeight : document.body.clientHeight)+(ignoreMe = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop))+'px');
+}
+
+#pts_canvas {
+    position: relative;
+    top: 5px;
+    left: 5px;
+    height:30px;
 }

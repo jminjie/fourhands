@@ -10,6 +10,7 @@ const DEBUG = (process.argv[2] == "debug") ? true : false;
 
 if (DEBUG) {
     console.log("Running in debug mode. Note that MIDI is not available without HTTPS");
+    console.log("Up on localhost:30001");
     const http = require('http');
     var app = http.createServer(function(req, res) {
         fileServer.serve(req, res);

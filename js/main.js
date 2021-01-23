@@ -1,4 +1,3 @@
-
 /***************************************************************************r
  * *
 * Initial setup
@@ -473,13 +472,17 @@ function changeMySampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             mySampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).connect(reverb).toDestination();
+            }).toDestination();
+            if (parseFloat(decay) > 0) {
+                let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
+                mySampler.connect(reverb);
+            }
             myGain = parseFloat(gain);
+            sound = Sound.from( mySampler, mySampler.context ).analyze(256);
             document.getElementById("mysamplerurl").value = url;
             document.getElementById("mysamplerrelease").value = rel;
             document.getElementById("mygain").value = gain;
@@ -492,12 +495,15 @@ function changeLoopSampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             myLoopSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).connect(reverb).toDestination();
+            }).toDestination();
+            if (parseFloat(decay) > 0) {
+                let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
+                myLoopSampler.connect(reverb);
+            }
             myLoopGain = parseFloat(gain);
             document.getElementById("loopsamplerurl").value = url;
             document.getElementById("loopsamplerrelease").value = rel;
@@ -511,12 +517,15 @@ function changeTheirLoopSampler(url, rel, gain, decay) {
     fetch(url + 'config.json')
         .then(response => response.json())
         .then(function (mapping) {
-            let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
             theirLoopSampler = new Tone.Sampler({
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).connect(reverb).toDestination();
+            }).toDestination();
+            if (parseFloat(decay) > 0) {
+                let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
+                theirLoopSampler.connect(reverb);
+            }
             theirLoopGain = parseFloat(gain);
         });
 }
@@ -542,7 +551,11 @@ function changeTheirSampler(url, rel, gain, decay) {
                 urls: mapping,
                 release: rel,
                 baseUrl: url,
-            }).connect(reverb).toDestination();
+            }).toDestination();
+            if (parseFloat(decay) > 0) {
+                let reverb = new Tone.Reverb(parseFloat(decay)).toDestination();
+                theirSampler.connect(reverb);
+            }
             theirGain = parseFloat(gain);
             document.getElementById("theirsamplerurl").value = url;
             document.getElementById("theirsamplerrelease").value = rel;
@@ -863,6 +876,9 @@ function addToLoop(command, byte1, byte2) {
 }
 
 function playPauseLoop() {
+    if (recording) {
+        finishLoop();
+    }
     if (playingLoop == false) {
         playingLoop = true;
         playLoopOnce();
@@ -898,6 +914,7 @@ function beginLoop() {
     recording = true;
     document.getElementById("startLoopButton").disabled = true;
     document.getElementById("stopLoopButton").disabled = false;
+    document.getElementById("playPauseLoopButton").disabled = false;
     // automatically set loop sampler things equal to my sampler
     let url = document.getElementById("mysamplerurl").value;
     let rel = document.getElementById("mysamplerrelease").value;
@@ -917,3 +934,48 @@ function finishLoop() {
     document.getElementById("stopLoopButton").disabled = true;
     document.getElementById("playPauseLoopButton").disabled = false;
 }
+
+var paused = false;
+function toggleVisual() {
+    if (paused) {
+        space.resume();
+        paused = false;
+    } else {
+        paused = true;
+        space.pause();
+    }
+}
+
+
+/****************************************************************************
+* Visualization logic
+****************************************************************************/
+Pts.quickStart( "pts", "powderblue" );
+var sound = Sound.from( mySampler, mySampler.context ).analyze(256);
+
+space.add({
+    animate: (time) => {
+        if (mySampler.context.state === 'suspended') { // mostly for safari
+            form.fillOnly("#fff").text( [20, 30], "Click anywhere to start" );
+        }
+
+        var area = space.size;
+        var idx = space.pointer.$divide( area ).floor();
+        var rect = [idx.$multiply(area), idx.$multiply(area).add(area)];
+
+        let t1 = sound.timeDomainTo( area, rect[0].$subtract(0, area.y/2) );
+        let t2 = t1.map( t => t.$add(0, area.y) ).reverse();
+        let freqs = sound.freqDomainTo( [area.x*2, area.y/2], [rect[0].x, 0] ).map( f => [[f.x, rect[0].y+area.y/2-f.y], [f.x, rect[0].y+area.y/2+f.y]] );
+
+        form.fillOnly("powderblue").polygon( t1.concat(t2) );
+        form.strokeOnly("white", Math.ceil(area.x/128) ).lines( freqs );
+    },
+    action: (type, x, y) => {
+        if (type === "up") { // for safari
+            if (mySampler.context.state === 'suspended') {
+                mySampler.context.resume();
+            }
+        }
+    }
+});
+space.play();
