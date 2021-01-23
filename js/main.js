@@ -924,6 +924,10 @@ function beginLoop() {
     if (peerConnected()) {
         dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain + " " + decay);
     }
+    // if pedal is down at start of loop, add to loop
+    if (myPedal) {
+        addToLoop(176, 64, 1);
+    }
 }
 
 function finishLoop() {
