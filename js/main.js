@@ -978,4 +978,5 @@ space.add({
         }
     }
 });
+space.autoResize = false;
 space.play();
