@@ -211,6 +211,9 @@ function onDataChannelCreated(channel) {
         sendPing();
         window.setInterval(sendPing, 1000);
         sendBtn.disabled = false;
+        // when connecting, send sampler info in case player changed already
+        onSetMySamplerButtonPress();
+        onSetLoopSamplerButtonPress();
     };
 
     channel.onclose = function () {
