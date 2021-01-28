@@ -52,6 +52,3 @@ Chrome and Edge work. Firefox does not work as there is [no support for
 MIDI](https://developer.mozilla.org/en-US/docs/Web/API/MIDIAccess). Other
 browsers are not tested, but should work if they support MIDI, Tone.js, web
 sockets, and WebRTC.
-
-## Demo video
-https://www.youtube.com/watch?v=nIp32IVCVrk
