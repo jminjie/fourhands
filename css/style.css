@@ -1,3 +1,7 @@
+body {
+    padding: 0em 1em 0em 1em;
+}
+
 #footer {
    position:static;
    left:0px;

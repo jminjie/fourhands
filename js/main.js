@@ -68,7 +68,7 @@ socket.emit('create or join', room);
 socket.on('disconnect', function(reason) {
     console.log(`Disconnected: ${reason}.`);
     sendBtn.disabled = true;
-    document.getElementById("peer-status").innerHTML = "Lost peer connection.";
+    document.getElementById("peer-status").innerHTML = "Lost connection from partner.";
     document.getElementById("peer-status").style.color = "#000";
     document.getElementById("ping").innerHTML = "";
     document.getElementById("ping2").innerHTML = "";
@@ -77,7 +77,7 @@ socket.on('disconnect', function(reason) {
 socket.on('bye', function(room) {
     console.log(`Peer leaving room ${room}.`);
     sendBtn.disabled = true;
-    document.getElementById("peer-status").innerHTML = "Lost peer connection.";
+    document.getElementById("peer-status").innerHTML = "Lost connection from partner.";
     document.getElementById("peer-status").style.color = "#000";
     document.getElementById("ping").innerHTML = "";
     document.getElementById("ping2").innerHTML = "";
@@ -206,12 +206,17 @@ function sendPing() {
     }
 }
 
+function onInput() {
+        onSetMySamplerButtonPress();
+        onSetLoopSamplerButtonPress();
+}
+
 function onDataChannelCreated(channel) {
     console.log('onDataChannelCreated:', channel);
 
     channel.onopen = function() {
         console.log('CHANNEL opened!!!');
-        document.getElementById("peer-status").innerHTML = "Peer connected.";
+        document.getElementById("peer-status").innerHTML = "Partner connected.";
         document.getElementById("peer-status").style.color = "green";
         sendPing();
         window.setInterval(sendPing, 1000);
@@ -224,7 +229,7 @@ function onDataChannelCreated(channel) {
     channel.onclose = function () {
         console.log('Channel closed.');
         sendBtn.disabled = true;
-        document.getElementById("peer-status").innerHTML = "Lost peer connection.";
+        document.getElementById("peer-status").innerHTML = "Lost connection from partner.";
         document.getElementById("peer-status").style.color = "#000";
         document.getElementById("ping").innerHTML = "";
         document.getElementById("ping2").innerHTML = "";
@@ -244,20 +249,20 @@ function onDataChannelCreated(channel) {
             }
             if (event.data.substring(0, 9) == "mySampler") {
                 let samplerData = event.data.split(' ');
-                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                changeTheirSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4], samplerData[5]);
                 console.log(event.data);
                 return;
             }
             // only you can set your own loop, so we don't need to listen for myLoopSampler
             if (event.data.substring(0, 16) == "theirLoopSampler") {
                 let samplerData = event.data.split(' ');
-                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                changeTheirLoopSampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4], samplerData[5]);
                 console.log(event.data);
                 return;
             }
             if (event.data.substring(0, 12) == "theirSampler") {
                 let samplerData = event.data.split(' ');
-                changeMySampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4]);
+                changeMySampler(samplerData[1], samplerData[2], samplerData[3], samplerData[4], samplerData[5]);
                 console.log(event.data);
                 return;
             }
@@ -454,28 +459,36 @@ function playMidi(who, command, byte1, byte2) {
 }
 
 function onSetMySamplerButtonPress() {
-    let url = document.getElementById("mysamplerurl").value;
+    //let url = document.getElementById("mysamplerurl").value;
+
+    var dropdown = document.getElementById("dropdownsampler");
+    var samplerValue = dropdown.options[dropdown.selectedIndex].value;
+    var url = "https://jminjie.github.io/samples/" + samplerValue + '/';
+
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
     let decay = document.getElementById("mydecay").value;
-    changeMySampler(url, rel, gain, decay);
+    changeMySampler(url, rel, gain, decay, samplerValue);
     if (peerConnected()) {
-        dataChannel.send("mySampler " + url + " " + rel + " " + gain + " " + decay);
+        dataChannel.send("mySampler " + url + " " + rel + " " + gain + " " + decay + " " + samplerValue);
     }
 }
 
 function onSetLoopSamplerButtonPress() {
-    let url = document.getElementById("loopsamplerurl").value;
+    var dropdown = document.getElementById("loopdropdownsampler");
+    var samplerValue = dropdown.options[dropdown.selectedIndex].value;
+    var url = "https://jminjie.github.io/samples/" + samplerValue + '/';
+
     let rel = document.getElementById("loopsamplerrelease").value;
     let gain = document.getElementById("loopgain").value;
     let decay = document.getElementById("loopdecay").value;
-    changeLoopSampler(url, rel, gain, decay);
+    changeLoopSampler(url, rel, gain, decay, samplerValue);
     if (peerConnected()) {
-        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain + " " + decay);
+        dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain + " " + decay + " " + samplerValue);
     }
 }
 
-function changeMySampler(url, rel, gain, decay) {
+function changeMySampler(url, rel, gain, decay, samplerValue) {
     console.log("changeMySampler");
     fetch(url + 'config.json')
         .then(response => response.json())
@@ -491,14 +504,15 @@ function changeMySampler(url, rel, gain, decay) {
             }
             myGain = parseFloat(gain);
             sound = Sound.from( mySampler, mySampler.context ).analyze(256);
-            document.getElementById("mysamplerurl").value = url;
+            //document.getElementById("mysamplerurl").value = url;
+            document.getElementById("dropdownsampler").value = samplerValue;
             document.getElementById("mysamplerrelease").value = rel;
             document.getElementById("mygain").value = gain;
             document.getElementById("mydecay").value = decay;
         });
 }
 
-function changeLoopSampler(url, rel, gain, decay) {
+function changeLoopSampler(url, rel, gain, decay, samplerValue) {
     console.log("changeLoopSampler");
     fetch(url + 'config.json')
         .then(response => response.json())
@@ -513,7 +527,7 @@ function changeLoopSampler(url, rel, gain, decay) {
                 myLoopSampler.connect(reverb);
             }
             myLoopGain = parseFloat(gain);
-            document.getElementById("loopsamplerurl").value = url;
+            document.getElementById("loopdropdownsampler").value = samplerValue;
             document.getElementById("loopsamplerrelease").value = rel;
             document.getElementById("loopgain").value = gain;
             document.getElementById("loopdecay").value = decay;
@@ -539,17 +553,20 @@ function changeTheirLoopSampler(url, rel, gain, decay) {
 }
 
 function onSetTheirSamplerButtonPress() {
-    let url = document.getElementById("theirsamplerurl").value;
+    var dropdown = document.getElementById("theirdropdownsampler");
+    var samplerValue = dropdown.options[dropdown.selectedIndex].value;
+    var url = "https://jminjie.github.io/samples/" + samplerValue + '/';
+
     let rel = document.getElementById("theirsamplerrelease").value;
     let gain = document.getElementById("theirgain").value;
     let decay = document.getElementById("theirdecay").value;
-    changeTheirSampler(url, rel, gain, decay);
+    changeTheirSampler(url, rel, gain, decay, samplerValue);
     if (peerConnected()) {
-        dataChannel.send("theirSampler " + url + " " + rel + " " + gain + " " + decay);
+        dataChannel.send("theirSampler " + url + " " + rel + " " + gain + " " + decay + " " + samplerValue);
     }
 }
 
-function changeTheirSampler(url, rel, gain, decay) {
+function changeTheirSampler(url, rel, gain, decay, samplerValue) {
     console.log("changeTheirSampler");
     fetch(url + 'config.json')
         .then(response => response.json())
@@ -566,7 +583,7 @@ function changeTheirSampler(url, rel, gain, decay) {
             }
             theirGain = parseFloat(gain);
             sound2 = Sound.from( theirSampler, theirSampler.context ).analyze(256);
-            document.getElementById("theirsamplerurl").value = url;
+            document.getElementById("theirdropdownsampler").value = samplerValue;
             document.getElementById("theirsamplerrelease").value = rel;
             document.getElementById("theirgain").value = gain;
             document.getElementById("theirdecay").value = decay;
@@ -925,11 +942,15 @@ function beginLoop() {
     document.getElementById("stopLoopButton").disabled = false;
     document.getElementById("playPauseLoopButton").disabled = false;
     // automatically set loop sampler things equal to my sampler
-    let url = document.getElementById("mysamplerurl").value;
+    //let url = document.getElementById("mysamplerurl").value;
+    var dropdown = document.getElementById("dropdownsampler");
+    var samplerValue = dropdown.options[dropdown.selectedIndex].value;
+    var url = "https://jminjie.github.io/samples/" + samplerValue + '/';
+
     let rel = document.getElementById("mysamplerrelease").value;
     let gain = document.getElementById("mygain").value;
     let decay = document.getElementById("mydecay").value;
-    changeLoopSampler(url, rel, gain, decay);
+    changeLoopSampler(url, rel, gain, decay, samplerValue);
     if (peerConnected()) {
         dataChannel.send("theirLoopSampler " + url + " " + rel + " " + gain + " " + decay);
     }

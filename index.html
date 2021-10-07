@@ -6,15 +6,30 @@
 </head>
 <body>
   <link rel="stylesheet" href="css/style.css">
-  <h1>Fourhands is a P2P piano</h1>
+  <h1>Fourhands: the fast two player piano</h1>
   <ol>
-  <li>Plug in a MIDI keyboard</li>
-  <li>Share the URL with another player</li>
-  <li>See <a href="https://jminjie.github.io/samples" target="_blank">this page</a> for more samples</li>
+  <li id="browser-status"></li>
+  <li id="midi-status">Plug in a MIDI device or use keys ASDFGHJK. Try refreshing if device is not detected.</li>
+  <li id="peer-status">No player connected. Share the URL with another player.</li>
   </ol>
+  <br>
   <div style="border:1px solid #000;padding:10px;background-color:powderblue;display:inline-block">
   <button onclick="onSetMySamplerButtonPress()">Set my sampler</button>
-  <input type="text" id="mysamplerurl" size="50" value="https://jminjie.github.io/samples/piano/">
+      <select name="My sampler" id="dropdownsampler">
+      <option value="piano">Piano</option>
+      <option value="classic">Classic electric piano</option>
+      <option value="banjo">Banjo</option>
+      <option value="harpsichord">Harpsichord</option>
+      <option value="organ_tr">Organ</option>
+      <option value="bass_ac">Acoustic bass</option>
+      <option value="clav">Clavier</option>
+      <option value="bass_elec">Electric bass</option>
+      <option value="drum">Drum</option>
+      <option value="wurlitzer">Wurlitzer</option>
+      <option value="guitar">Guitar</option>
+      <option value="mandolin">Mandolin</option>
+  </select>
+
   Release: <input type="number" min="0" max="1" step="0.1" id="mysamplerrelease" size="5" value="0.6">
   Gain: <input type="number" min="0" max="2" step="0.1" id="mygain" size="5" value="1.0">
   Decay: <input type="number" min="0" max="20" step="0.5" id="mydecay" size="5" value="1.5">
@@ -25,7 +40,20 @@
   <br>
   <div style="border:1px solid #000;padding:10px;background-color:#F9E79F;display:inline-block">
   <button onclick="onSetTheirSamplerButtonPress()">Set their sampler</button>
-  <input type="text" id="theirsamplerurl" size="50" value="https://jminjie.github.io/samples/drum/">
+  <select name="Their sampler" id="theirdropdownsampler">
+      <option value="piano">Piano</option>
+      <option value="classic">Classic electric piano</option>
+      <option value="banjo">Banjo</option>
+      <option value="harpsichord">Harpsichord</option>
+      <option value="organ_tr">Organ</option>
+      <option value="bass_ac">Acoustic bass</option>
+      <option value="clav">Clavier</option>
+      <option value="bass_elec">Electric bass</option>
+      <option value="drum">Drum</option>
+      <option value="wurlitzer">Wurlitzer</option>
+      <option value="guitar">Guitar</option>
+      <option value="mandolin">Mandolin</option>
+  </select>
   Release: <input type="number" min="0" max="1" step="0.1" id="theirsamplerrelease" size="5" value="0.6">
   Gain: <input type="number" min="0" max="2" step="0.1" id="theirgain" size="5" value="1.0">
   Decay: <input type="number" min="0" max="20" step="0.5" id="theirdecay" size="5" value="1.5">
@@ -33,8 +61,8 @@
   <div id="pts2"></div>
   </div>
   <br>
-  <br>
-  <div style="border:1px solid #000;padding:10px;background-color:lightgrey;display:inline-block">
+  <!-- hide the looper with display:none since it's a litle confusing and not used that much -->
+  <div style="border:1px solid #000;padding:10px;background-color:lightgrey;display:none">
   <button onclick="beginLoop()" id="startLoopButton">Record loop</button>
   <button onclick="finishLoop()" id="stopLoopButton">End record</button>
   <button onclick="playPauseLoop()" id="playPauseLoopButton">Play/pause</button>
@@ -42,16 +70,26 @@
   <br>
   <br>
   <button onclick="onSetLoopSamplerButtonPress()">Set loop sampler</button>
-  <input type="text" id="loopsamplerurl" size="50" value="https://jminjie.github.io/samples/piano/">
+  <select name="Loop sampler" id="loopdropdownsampler">
+      <option value="piano">Piano</option>
+      <option value="classic">Classic electric piano</option>
+      <option value="banjo">Banjo</option>
+      <option value="harpsichord">Harpsichord</option>
+      <option value="organ_tr">Organ</option>
+      <option value="bass_ac">Acoustic bass</option>
+      <option value="clav">Clavier</option>
+      <option value="bass_elec">Electric bass</option>
+      <option value="drum">Drum</option>
+      <option value="wurlitzer">Wurlitzer</option>
+      <option value="guitar">Guitar</option>
+      <option value="mandolin">Mandolin</option>
+  </select>
   Release: <input type="number" min="0" max="1" step="0.1" id="loopsamplerrelease" size="5" value="0.6">
   Gain: <input type="number" min="0" max="2" step="0.1" id="loopgain" size="5" value="1.0">
   Decay: <input type="number" min="0" max="20" step="0.5" id="loopdecay" size="5" value="1.5">
   <br>
   </div>
   <h2>Diagnostics</h2>
-  <div id="browser-status"></div>
-  <div id="midi-status">No MIDI device detected. Try refreshing or use the keys ASDFGHJK.</div>
-  <div id="peer-status">No peer connected.</div>
   <button id="send">Send test p2p message</button>
   <br>
   <br>
