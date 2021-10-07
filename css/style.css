@@ -25,3 +25,29 @@
     left: 5px;
     height:30px;
 }
+
+.sound-overlay {
+    text-align: center;
+    z-index: 20;
+    border-radius: 6px;
+    position:fixed;
+    width: 320px;
+    height: 230px;
+    top: 50%;
+    left: 50%;
+    margin-left: -180px; /* Negative half of width. */
+    margin-top: -180px; /* Negative half of height. */
+    font-size: 16px;
+    line-height: 24px;
+    padding: 20px 20px 20px 20px;
+    box-shadow: 0 0 0 1500px rgba(0, 0, 0, .5);
+    background: white;
+    .accept-sound {
+        cursor: pointer;
+        padding: 50px 50px 50px 50px;
+    }
+}
+
+.d-none {
+    display: none;
+}

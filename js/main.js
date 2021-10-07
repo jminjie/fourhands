@@ -92,6 +92,11 @@ window.addEventListener('unload', function() {
   socket.emit('bye', room);
 });
 
+window.addEventListener('load', function() {
+    if (document.cookie.indexOf("cookie_soundon=") < 0) {
+        document.querySelector('.sound-overlay').classList.remove('d-none');
+    }
+});
 
 /**
 * Send message to signaling server
@@ -1027,3 +1032,9 @@ space2.add({
     }
 });
 space2.play();
+
+function acceptSound() {
+    document.cookie = "cookie_soundon=true";
+    document.querySelector('.sound-overlay').classList.add('d-none');
+    Tone.start();
+}

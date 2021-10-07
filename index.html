@@ -8,11 +8,8 @@
   <link rel="stylesheet" href="css/style.css">
   <h1>Fourhands is a P2P piano</h1>
   <ol>
-  <li>Share the URL with another player</li>
   <li>Plug in a MIDI keyboard</li>
-  <li>Click to manually enable audio</li>
-  <button id="play-button">Enable audio</button>
-  <li>You should be able to hear your own playing as well as the other player in the room</li>
+  <li>Share the URL with another player</li>
   <li>See <a href="https://jminjie.github.io/samples" target="_blank">this page</a> for more samples</li>
   </ol>
   <div style="border:1px solid #000;padding:10px;background-color:powderblue;display:inline-block">
@@ -64,6 +61,12 @@
   <pre>Round trip time (ms): <span id="ping"></span></pre>
   <pre>Est oneway time (ms): <span id="ping2"></span></pre>
   <br>
+  <div class="sound-overlay d-none">
+      <h3>This website makes sound</b></h3>
+      <p>You will hear your own playing as well as the other player in the room</p>
+      <img style="width: 100%; padding: 5px 0 10px 0;" src="audio.png"></img>
+      <button class="accept-sound" onclick="acceptSound()">Allow</b></button>
+  </div>
   <script src="https://unpkg.com/pts@0.9.6/dist/pts.js"></script>
   <script type="text/javascript" src="https://unpkg.com/tone"></script>
   <script src="/socket.io/socket.io.js"></script>

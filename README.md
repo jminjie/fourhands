@@ -38,7 +38,10 @@ is a MIDI keyboard and an optionally wired internet. Because only MIDI data is
 shared, it is limited to instruments which can output MIDI.
 
 ## Development
-For self hosting, deploy with `node index.js debug`. This will serve the files
+For self hosting, after cloning the repo run `npm install` to install necessary
+packages.
+
+Deploy with `node index.js debug`. This will serve the files
 needed for the page (index.html and js/) and also start the NodeJs server
 (index.js).
 
