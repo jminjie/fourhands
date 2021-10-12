@@ -12,10 +12,9 @@
   <li id="midi-status">Plug in a MIDI device or use keys ASDFGHJK. Try refreshing if device is not detected.</li>
   <li id="peer-status">No player connected. Share the URL with another player.</li>
   </ol>
-  <br>
-  <div style="border:1px solid #000;padding:10px;background-color:powderblue;display:inline-block">
-  <button onclick="onSetMySamplerButtonPress()">Set my sampler</button>
-      <select name="My sampler" id="dropdownsampler">
+  <div style="position:relative; display:inline-block; height:127px;">
+  <img style="position: absolute; z-index: -10;" src="keyboard.svg"></img>
+  <select style="position:absolute; top:19px; left: 250px;" onchange="onSetMySamplerButtonPress()" name="My sampler" id="dropdownsampler">
       <option value="piano">Piano</option>
       <option value="classic">Classic electric piano</option>
       <option value="banjo">Banjo</option>
@@ -30,17 +29,20 @@
       <option value="mandolin">Mandolin</option>
   </select>
 
-  Release: <input type="number" min="0" max="1" step="0.1" id="mysamplerrelease" size="5" value="0.6">
-  Gain: <input type="number" min="0" max="2" step="0.1" id="mygain" size="5" value="1.0">
+  <input style="position: absolute; top: 20px; left: 425px;" onclick="onSetMySamplerButtonPress()" type="range" min="0" max="1.2" value="0.6" step="0.2" id="mygain" class="gainslider">
+
+  <span class="hide">
   Decay: <input type="number" min="0" max="20" step="0.5" id="mydecay" size="5" value="1.5">
+  Release: <input onclick="onSetMySamplerButtonPress()" type="number" min="0" max="1" step="0.1" id="mysamplerrelease" size="5" value="0.6">
+  </span>
   <br>
-  <div id="pts"></div>
+  <div style="position:absolute; top:50px; left: 10px; width: 575px; height: 60px;" id="pts"></div>
   </div>
   <br>
   <br>
-  <div style="border:1px solid #000;padding:10px;background-color:#F9E79F;display:inline-block">
-  <button onclick="onSetTheirSamplerButtonPress()">Set their sampler</button>
-  <select name="Their sampler" id="theirdropdownsampler">
+  <div style="position:relative; display:inline-block; height:127px;">
+  <img style="position: absolute; z-index: -10;" src="keyboard2.svg"></img>
+  <select style="position:absolute; top:19px; left: 250px;" onchange="onSetMySamplerButtonPress()" name="Their sampler" id="theirdropdownsampler">
       <option value="piano">Piano</option>
       <option value="classic">Classic electric piano</option>
       <option value="banjo">Banjo</option>
@@ -54,11 +56,13 @@
       <option value="guitar">Guitar</option>
       <option value="mandolin">Mandolin</option>
   </select>
-  Release: <input type="number" min="0" max="1" step="0.1" id="theirsamplerrelease" size="5" value="0.6">
-  Gain: <input type="number" min="0" max="2" step="0.1" id="theirgain" size="5" value="1.0">
+  <input style="position: absolute; top: 20px; left: 425px;" onclick="onSetMySamplerButtonPress()" type="range" min="0" max="1.2" value="0.6" step="0.2" id="theirgain" class="gainslider">
+  <span class="hide">
   Decay: <input type="number" min="0" max="20" step="0.5" id="theirdecay" size="5" value="1.5">
+  Release: <input type="number" min="0" max="1" step="0.1" id="theirsamplerrelease" size="5" value="0.6">
+  </span>
   <br>
-  <div id="pts2"></div>
+  <div style="position:absolute; top:50px; left: 10px; width: 575px; height: 60px;" id="pts2"></div>
   </div>
   <br>
   <!-- hide the looper with display:none since it's a litle confusing and not used that much -->
@@ -70,7 +74,7 @@
   <br>
   <br>
   <button onclick="onSetLoopSamplerButtonPress()">Set loop sampler</button>
-  <select name="Loop sampler" id="loopdropdownsampler">
+  <select onchange="onSetLoopSamplerButtonPress" name="Loop sampler" id="loopdropdownsampler">
       <option value="piano">Piano</option>
       <option value="classic">Classic electric piano</option>
       <option value="banjo">Banjo</option>
@@ -91,9 +95,7 @@
   </div>
   <h2>Diagnostics</h2>
   <button id="send">Send test p2p message</button>
-  <br>
-  <br>
-      <button onclick="toggleVisual()">Toggle visual effects</button>
+  <button onclick="toggleVisual()">Toggle visual effects</button>
   <p>For seamless jamming, one-way time of 20 ms or less is ideal. Typically this can be achieved on
   wired connections for fairly nearby players (within 35 miles / 50 km).</p>
   <pre>Round trip time (ms): <span id="ping"></span></pre>

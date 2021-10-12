@@ -206,11 +206,6 @@ function sendPing() {
     }
 }
 
-function onInput() {
-        onSetMySamplerButtonPress();
-        onSetLoopSamplerButtonPress();
-}
-
 function onDataChannelCreated(channel) {
     console.log('onDataChannelCreated:', channel);
 
