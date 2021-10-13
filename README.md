@@ -1,5 +1,7 @@
 # Fourhands, the p2p piano
 
+![Fourhands logo](fourhandslogo.svg)
+
 Fourhands uses WebRTC to establish p2p connetions for minimal latency 2-person
 jamming using MIDI keyboards.
 
