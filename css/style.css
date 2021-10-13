@@ -1,5 +1,12 @@
 body {
-    padding: 0em 1em 0em 1em;
+    padding: 1em 1em 0em 1em;
+    width: 610px;
+    margin: auto;
+    background: #E3ECF8;
+}
+
+h1, h2 {
+    text-align: center;
 }
 
 #footer {

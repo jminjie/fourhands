@@ -1054,3 +1054,14 @@ function acceptSound() {
     document.querySelector('.sound-overlay').classList.add('d-none');
     Tone.start();
 }
+
+var diagnosticsOpen = false;
+function toggleDiagnostics() {
+    if (diagnosticsOpen) {
+        diagnosticsOpen = false;
+        document.querySelector('.diagnostics').classList.add('d-none');
+    } else {
+        diagnosticsOpen = true;
+        document.querySelector('.diagnostics').classList.remove('d-none');
+    }
+}

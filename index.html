@@ -6,7 +6,8 @@
 </head>
 <body>
   <link rel="stylesheet" href="css/style.css">
-  <h1>Fourhands: the fast two player piano</h1>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css">
+  <h1><img src="fourhandslogo.svg"></img></h1>
   <ol>
   <li id="browser-status"></li>
   <li id="midi-status">Plug in a MIDI device or use keys ASDFGHJK. Try refreshing if device is not detected.</li>
@@ -93,7 +94,8 @@
   Decay: <input type="number" min="0" max="20" step="0.5" id="loopdecay" size="5" value="1.5">
   <br>
   </div>
-  <h2>Diagnostics</h2>
+  <h2 style="cursor:pointer; width:180px;" onclick="toggleDiagnostics()">Diagnostics <i class="fa-solid fa-angle-down"></i></h2>
+  <div class="diagnostics d-none">
   <button id="send">Send test p2p message</button>
   <button onclick="toggleVisual()">Toggle visual effects</button>
   <p>For seamless jamming, one-way time of 20 ms or less is ideal. Typically this can be achieved on
@@ -101,6 +103,7 @@
   <pre>Round trip time (ms): <span id="ping"></span></pre>
   <pre>Est oneway time (ms): <span id="ping2"></span></pre>
   <br>
+  </div>
   <div class="sound-overlay d-none">
       <h3>This website makes sound</b></h3>
       <p>You will hear your own playing as well as the other player in the room</p>
