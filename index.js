@@ -4,7 +4,7 @@ var os = require('os');
 var nodeStatic = require('node-static');
 var socketIO = require('socket.io');
 
-var fileServer = new(nodeStatic.Server)();
+var fileServer = new nodeStatic.Server('./public');
 
 const DEBUG = (process.argv[2] == "debug") ? true : false;
 
@@ -13,6 +13,7 @@ if (DEBUG) {
     console.log("Up on localhost:30001");
     const http = require('http');
     var app = http.createServer(function(req, res) {
+        log(req.url);
         fileServer.serve(req, res);
     }).listen(30001);
 } else {
