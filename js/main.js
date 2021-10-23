@@ -43,17 +43,13 @@ socket.on('joined', function(room, clientId) {
   createPeerConnection(isInitiator, configuration);
 });
 
-socket.on('full', function(room) {
-  alert('Room ' + room + ' is full. Try again later.');
-});
-
 socket.on('ready', function() {
   console.log('Socket is ready');
   createPeerConnection(isInitiator, configuration);
 });
 
-socket.on('log', function(array) {
-  console.log.apply(console, array);
+socket.on('full', function(room) {
+  alert('Room ' + room + ' is full. Try again later.');
 });
 
 socket.on('message', function(message) {
@@ -63,16 +59,6 @@ socket.on('message', function(message) {
 
 // Joining a room.
 socket.emit('create or join', room);
-
-// Leaving rooms and disconnecting from peers.
-socket.on('disconnect', function(reason) {
-    console.log(`Disconnected: ${reason}.`);
-    sendBtn.disabled = true;
-    document.getElementById("peer-status").innerHTML = "Lost connection from partner.";
-    document.getElementById("peer-status").style.color = "#000";
-    document.getElementById("ping").innerHTML = "";
-    document.getElementById("ping2").innerHTML = "";
-});
 
 socket.on('bye', function(room) {
     console.log(`Peer leaving room ${room}.`);
