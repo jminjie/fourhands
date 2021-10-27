@@ -1,3 +1,7 @@
+// MIDI commands
+const KEY_DOWN = 144;
+const KEY_UP = 128;
+
 /***************************************************************************r
  * *
 * Initial setup
@@ -10,9 +14,11 @@ var configuration = {
 };
 
 var sendBtn = document.getElementById('send');
+var mirrorBtn = document.getElementById('mirror-toggle');
 
 // Attach event handlers
 sendBtn.addEventListener('click', sendTestMessage);
+mirrorBtn.addEventListener('click', toggleMirrorMode);
 
 // Disable send buttons by default.
 sendBtn.disabled = true;
@@ -781,6 +787,9 @@ document.addEventListener('keyup', function(event) {
 function onMidiMessage(message) {
     var command = message.data[0];
     var byte1 = message.data[1];
+    if (mirrorMode && [KEY_DOWN, KEY_UP].includes(command)) {
+        byte1 = -byte1 + 124;
+    }
     // a velocity value might not be included with a noteOff command
     var byte2 = (message.data.length > 2) ? message.data[2] : 0;
 
@@ -1064,4 +1073,20 @@ function toggleDiagnostics() {
         diagnosticsOpen = true;
         document.querySelector('.diagnostics').classList.remove('d-none');
     }
+}
+
+/****************************************************************************
+* Mirror piano
+****************************************************************************/
+var mirrorMode = true;
+updateMirrorButtonText();
+
+function toggleMirrorMode() {
+    mirrorMode = !mirrorMode;
+    updateMirrorButtonText();
+}
+
+function updateMirrorButtonText() {
+    var buttonText = mirrorMode ? 'Mirrored' : 'Standard';
+    mirrorBtn.innerHTML = buttonText;
 }
