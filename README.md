@@ -2,19 +2,19 @@
 
 ![Fourhands logo](fourhandslogo.png)
 
-Fourhands uses WebRTC to establish p2p connetions for minimal latency 2-person
+Fourhands uses WebRTC to establish p2p connections for minimal latency 2-person
 jamming using MIDI keyboards.
 
 For seamless collaboration on Fourhands, one-way time of 20 ms or less is
-ideal. Typically this can be acheived on wired connections for fairly nearby
-players (within 35 miles / 50 km. Anecdotally, a friend has also acheived this
+ideal. Typically this can be achieved on wired connections for fairly nearby
+players (within 35 miles / 50 km. Anecdotally, a friend has also achieved this
 between SF and LA -- 350 miles / 500 km).
 
 Try it here: [create a room and share the link to invite another
 player](https://fourhands.jminjie.com).
 
 ## Prior art
-Online jamming has been acheived already, but often not in an accessible and
+Online jamming has been achieved already, but often not in an accessible and
 unstructured way.
 
 - [Jacktrip](https://news.stanford.edu/2020/09/18/jacktrip-software-allows-musicians-sync-performances-online/)
